@@ -1,0 +1,31 @@
+\subsection{Introduction}
+
+\datum{Lecture 1: 01/06}
+
+The framework for hypothesis testing is as follows
+\begin{itemize}
+    \item[(i)] Testing \emph{null hypothesis} $H_0$
+    \item[(ii)] A \emph{statistic} or \emph{test statistic} is any quantity measured to gather evidence whether $H_0$ is true
+    \item[(iii)] The \emph{null distribution} is the distribution of the test statistic assuming $H_0$ is true
+    \item[(iv)] A \emph{hypothesis test} is a mapping of the test statistic to reject/not reject the null hypothesis $H_0$
+    \item[(v)] The \emph{type I} error is $\mathbb{P}_{H_0}\{\textup{reject } H_0\}$.
+\end{itemize}
+
+\emph{\textbf{Notation.}} We denote the distribution under the null hypothesis $H_0$ as 
+$\mathbb{P}_{H_0}$.
+
+\begin{defn}[p-value] \label{defn:statMod}
+   One way to look at the \emph{p-value} is as the smallest value of $\alpha$ at with to reject $H_0$ given the value of the test $p$, i.e. $\mathbb{P}\{p \leq \alpha\} \leq \alpha$.
+\end{defn}
+
+For many null hypotheses $H_{0,1},\dots, H_{0,m}$, assume we have a p-value $p_i$ for each $H_{0,i}$ and $i\in\{1,\dots,m\}$. We want to test the \emph{global hypothesis} $H_{0, \textup{ global}} := H_{0,1}\cap \dots \cap H_{0,m}$. 
+
+\emph{\textbf{Remark.}}
+If global hypothesis is true, then $p_1, \dots, p_m \sim \text{Uniform}[0,1]$ (for a continuous distribution), otherwise they deviate from a uniform distribution.
+
+Our goal is to 
+\begin{itemize}
+    \item Bound $\mathbb{P}\{\textup{false rejections}\}$
+    \item Bound $\mathbb{P}\{\textup{more than X\% false rejections}\}$
+    \item Bound $\mathbb{E}[\# \textup{false rejections}]$ or $\mathbb{E}[\textup{proportion of false rejections}]$
+\end{itemize}

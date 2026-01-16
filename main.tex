@@ -1,0 +1,73 @@
+\documentclass[a4paper]{article}
+
+\usepackage{skript}
+
+% lecture meta data
+\renewcommand{\lecturer}{Prof. Rina Barber}
+\renewcommand{\university}{University of Chicago}
+\renewcommand{\lecture}{Multiple Testing, Modern Inference and Replicability}
+\renewcommand{\semester}{Winter Quarter 2026}
+\renewcommand{\coursenumber}{STAT 27850/30850}
+\renewcommand{\myauthor}{\href{mailto:frankinliu@uchicago.edu}{Franklin Liu}}
+\renewcommand{\mythanks}{Template by \href{mailto:v.glombik@campus.tu-berlin.de}{Viktor Stein}}
+
+\begin{document}
+\selectlanguage{english}
+\mytitlepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagenumbering{arabic}
+
+\newgeometry{ 
+            %headheight=13pt, 
+            includehead,
+            includefoot,
+            top = 2cm,
+            bottom = 2cm,
+            left = 3cm,
+            right = 4cm}
+\edef\marginnotetextwidth{\the\textwidth} %  While some environments (e.g., those of package framed) change \textwidth, marginnote defines its own text width macro. If you change type area after \begin{document} you should add this
+\setlength\headheight{25pt}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Hypothesis Testing}
+\subfile{sections/1/1-1}
+\subfile{sections/1/1-2}
+\subfile{sections/1/1-3}
+\clearpage
+
+\begin{appendices}
+
+\newpage
+
+\KOMAoptions{paper=landscape,pagesize}
+\recalctypearea
+
+\newgeometry{left = 5mm,right = 3cm, top = 2cm, bottom = 20mm}
+
+
+\newpage
+\KOMAoptions{paper=portrait,pagesize}
+\recalctypearea
+
+\end{appendices}
+
+\newgeometry{ 
+            %headheight=13pt, 
+            includehead,
+            includefoot,
+            top = 2cm,
+            bottom = 2cm,
+            left = 3cm,
+            right = 4cm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Index %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addcontentsline{toc}{section}{Index}
+\printindex
+
+\clearpage
+%% References
+\bibliographystyle{babplain}
+\bibliography{Bibliography}
+            
+\end{document}
