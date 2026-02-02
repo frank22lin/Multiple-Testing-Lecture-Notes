@@ -1,0 +1,42 @@
+\subsection{Confidence Intervals}
+
+For each hypothesis $i=1,\dots,m$, suppose we observe $Z_i \sim \mathcal{N}(\mu_i, \sigma_i^2)$, where $\mu_i$ is unkown and $\sigma_i^2$ is known (or estimated from a large sample). A confidence interval for $\mu_i$ is given $\textup{CI}_i(1-\alpha) = \left[ Z_i-\sigma_i\Phi^{-1}\left( 1-\frac{\alpha}{2}\right), Z_i+\sigma_i\Phi^{-1}\left( 1-\frac{\alpha}{2}\right)\right]$, where $\Phi$ is the standard normal CDF. The usual two-sided $z$-test for $H_{0,i}\colon \mu_i=0$ has p-value $p_i = 2\left(1- \Phi\left( \frac{|Z_i|}{\sigma_i}\right)\right).$
+
+A naive approach would be
+\begin{itemize}
+    \item[(1)] Use BH procedure on $(p_1,\dots,p_m)$ to select a set of discoveries $\hat{I} \subseteq\{1,\dots,m\}$
+    \item[(2)] For each selected $i\in\hat{I}$, report the usual $(1-\alpha)$ confidence interval $\textup{CI}_i(1-\alpha)$
+\end{itemize}
+
+However, this may fail as the statement $\mathbb{P}\left[\mu_i \in \textup{CI}_i(1-\alpha) \right] = 1-\alpha$ is an unconditional guarantee for fixed $i$ before looking at the data. The naive approach conditions on the event that $i$ has been selected by BH, which depends on the same $Z_i$. After selection, the coverage among reported intervals can therefore be much smaller than $1-\alpha$. 
+
+
+Let $p_{(1)}\leq \cdots \leq p_{(m)}$ be sorted p-values and reject the first $\hat{k}$ with $\hat{I} = \{(1),\dots,(\hat{k})\}$. In total, we expect $\approx \alpha m$ many CIs that do not cover their true parameter and most of these errors are in the early part of the sorted list.
+
+
+Let $\hat{K} = |\hat{I|}$ be the number of reported intervals and let $V = \# \{ i\in \hat{I}\colon \mu_i \notin \textup{CI}_i (\cdot)\}$ be the number of reported intervals that fail to cover. Define the \emph{\textbf{false coverage proportion (FCP)}}
+$$\textup{FCP} = \frac{V}{\max(\hat{K},1)}$$
+and the  \emph{\textbf{false coverage rate (FCR)}}
+$$\textup{FCR} = \mathbb{E}[\textup{FCP}].$$
+
+In the worst case, if $\approx \alpha m$ intervals fail overall and these failures occur early in the ranked list, then among $\hat{K}$ reported intervals one could have $V\approx \alpha m$, so $\textup{FCP} \approx \frac{\alpha m}{\hat{K}}$, which could be large when $\hat{K} \ll m$.
+
+\emph{\textbf{FCR-controlling Procedure}}
+
+\begin{itemize}
+    \item[(1)] Select a set $\hat{I} \subseteq \{1.\dots,m\}$ using BH (or another multiple testing procedure)
+    \item[(2)] Let $\hat{K} = |\hat{I}|$. For each $i\in \hat{I}$ report a confidence interval at level $1-\frac{\alpha \hat{K}}{m}$ 
+\end{itemize}
+
+\begin{thm}{Sufficient Conditions for FCR Control}{Sufficient Conditions for FCR Control}
+\begin{itemize}
+    \item[(1)] Assume data for each $i\in [m]$ is independent
+    \item[(2)] Assume for each $i\in [m]$ there exists $\hat{K}_{-i}$ that is independent of data for test $i$ (but it may depend on all other data) s.t. if $i\in \hat{I}$, then $\hat{K} = \hat{K}_{-i}$
+    \item[(3)] Assume each $\textup{CI}_i(1-\alpha)$ is a valid $(1-\alpha)$ confidence interval
+\end{itemize}
+Then the FCR procedure from above controls $\textup{FCR} \leq \alpha$.
+\end{thm}
+
+\begin{example}
+    Let $\hat{I}$ be the se
+\end{example}

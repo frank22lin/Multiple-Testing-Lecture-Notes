@@ -30,7 +30,7 @@
 
 Use Fisher test if $p$-values are expected to be independent, otherwise use Bonferroni test. However, this would give us two chances to reject the null and in the worst case the significance level becomes $2\alpha$ (Bonferroni inequality) instead of $\alpha$. One solution would be to run both tests with a significance level of $\frac{\alpha}{2}$. Another test that accounts for this is the Simes test.
 
-\begin{proposition}{Simes Test}
+\begin{proposition}
     The \emph{Simes test} rejects $H_{0,\textup{global}}$ if for any $k = 1,\dots,m$, there are more than $k$ values of $p_i$ with $p_i \leq \frac{\alpha k}{m}$.    
 \end{proposition}
 

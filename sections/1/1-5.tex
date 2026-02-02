@@ -1,0 +1,32 @@
+\subsection{Permutation and Randomization Tests}
+
+\datum{Lecture 7: 01/27}
+\emph{\textbf{Goal.}} We want a strategy to compute a p-value for testing a hypothesis when we do no trust / want to assume a parametric model that would give a closed-form null distribution. We do this by recomputing a test statistic under transformation of the observed data that are valid under $H_0$.
+
+Let $T\colon \textup{data} \rightarrow \mathbb{R}$ with larger $T$ iff there is more evidence against $H_0$. Write $T_{\textup{obs}} := T(\textup{observed data})$ for the observed value of the test statistic. For example, for testing independence with real-valued, one can define $T:= | \textup{Sample Correlation}|$. 
+
+If we assume a parametric model, we might compute the null distribution of $T$ analytically. Without this assumption, we approximate the null distribution by
+\begin{itemize}
+    \item \emph{\textbf{Randomization Test.}} Generate synthetic datasets from a null distribution and recompute T.
+    \item \emph{\textbf{Permutation Test.}} Generate new datasets by permuting labels/indices in a way that is valid under $H_0$ and recompute T.
+\end{itemize}
+
+\begin{example}
+    We observe i.i.d. pairs $(X_i,Y_i)$ for $i\in[n]$ and want to test independence
+    $$
+    H_0 \colon X \perp Y \quad \textup{or equivalently }(X,Y)\sim P_X \times P_Y \quad \textup{vs.} \quad H_1 \colon X\not\perp Y.
+    $$
+
+    Let $T((X_1,Y_1),\dots,(X_n,Y_n))$ be a test statistic like sample correlation. The question is how to generate $\hat{T}_1, \dots, \hat{T}_m$ representing what $T$ would look like under $H_0$.
+
+    \begin{itemize}
+        \item[\textbf{Case 1:}] We know both marginals $P_X$ and $P_Y$. Then $$H_0\colon (X_i, Y_i)\stackrel{i.i.d.}{\sim} P_X\times P_Y$$ and we can simulate i.i.d. null datasets $(\Tilde{X}_1^{(m)}, \Tilde{Y}_1^{(m)}), \dots, (\Tilde{X}_m^{(m)}, \Tilde{Y}_m^{(m)}) \stackrel{i.i.d.}{\sim} P_X\times P_Y$ for $m=1,\dots, M$ and compute $\hat{T}_m = T\left((\Tilde{X}_1^{(m)}, \Tilde{Y}_1^{(m)}), \dots, (\Tilde{X}_m^{(m)}, \Tilde{Y}_m^{(m)})\right)$. Under $H_0$ $$T, \hat{T}_1,\dots, \hat{T}_M \textup{ are i.i.d from the null distribution.}$$
+
+        \item[\textbf{Case 2:}] We know one marginal (say $P_X$) but not $P_Y$. Then $$H_0\colon (X_i, Y_i)\stackrel{i.i.d.}{\sim} P_X\times P_Y \quad \textup{for some unkown }P_Y.$$ Under $H_0$ $$(T, \hat{T}_1,\dots, \hat{T}_M) \mid (Y_1,\dots,Y_n) \textup{ are i.i.d from the null distribution of T} \mid  (Y_1,\dots,Y_n).$$
+
+        \item[\textbf{Case 3:}] We do not know either marginal. We assume that under $H_0$ the pairs are i.i.d. from $P_X\times P_Y$ for some $P_X,P_Y$. A permutation test generates null datasets by breaking the paring between $X$ and $Y$. 
+
+        Let $\pi_m$ be a random permutation of $[n]$, then define $\Tilde{T}_m := T\left((X_{\pi_m(1)}, Y_1),\dots, (X_{\pi_m(n)}, Y_n)  \right)$. One can also permute $Y$ instead of $X$ or apply permutations to both $X$ and $Y$. Under $H_0$ $$(T, \hat{T}_1,\dots, \hat{T}_M) \mid (Y_1,\dots,Y_n) , (Y_1,\dots,Y_n) \textup{ are i.i.d from the conditional null distribution of T}.$$
+        
+    \end{itemize}
+\end{example}
