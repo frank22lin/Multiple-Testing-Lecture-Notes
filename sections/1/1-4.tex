@@ -1,5 +1,7 @@
 \subsection{Confidence Intervals}
 
+\datum{Lecture 6: 01/22}
+
 For each hypothesis $i=1,\dots,m$, suppose we observe $Z_i \sim \mathcal{N}(\mu_i, \sigma_i^2)$, where $\mu_i$ is unkown and $\sigma_i^2$ is known (or estimated from a large sample). A confidence interval for $\mu_i$ is given $\textup{CI}_i(1-\alpha) = \left[ Z_i-\sigma_i\Phi^{-1}\left( 1-\frac{\alpha}{2}\right), Z_i+\sigma_i\Phi^{-1}\left( 1-\frac{\alpha}{2}\right)\right]$, where $\Phi$ is the standard normal CDF. The usual two-sided $z$-test for $H_{0,i}\colon \mu_i=0$ has p-value $p_i = 2\left(1- \Phi\left( \frac{|Z_i|}{\sigma_i}\right)\right).$
 
 A naive approach would be
@@ -32,11 +34,51 @@ In the worst case, if $\approx \alpha m$ intervals fail overall and these failur
 \begin{itemize}
     \item[(1)] Assume data for each $i\in [m]$ is independent
     \item[(2)] Assume for each $i\in [m]$ there exists $\hat{K}_{-i}$ that is independent of data for test $i$ (but it may depend on all other data) s.t. if $i\in \hat{I}$, then $\hat{K} = \hat{K}_{-i}$
-    \item[(3)] Assume each $\textup{CI}_i(1-\alpha)$ is a valid $(1-\alpha)$ confidence interval
+    \item[(3)] Assume each $\textup{CI}_i(1-\alpha)$ is a valid and nested $(1-\alpha)$ confidence interval
 \end{itemize}
 Then the FCR procedure from above controls $\textup{FCR} \leq \alpha$.
 \end{thm}
 
 \begin{example}
-    Let $\hat{I}$ be the se
+    Let $\hat{I}$ be the set of BH discoveries at level $\alpha$ using $(P_1, \dots, P_m)$, and let $\hat{K} = |\hat{I}|$. Define $\hat{K}_{- i}$ as the number of BH discoveries when we replace $p_i$ by 0 and rerun BH:
+\[
+(P_1, \dots, P_{i-1}, 0, P_{i+1}, \dots, P_m).
+\]
+
+
+\begin{lemma}
+    Let $\hat{K}$ be the number of BH rejections at level $\alpha$ on $(P_1, \dots, P_m)$, and let $\hat{K}_{- i}$ be the number of BH rejections when $P_i$ is replaced by 0. Then:
+\begin{itemize}
+    \item[(1)] $\hat{K}_{- i} \ge \hat{K}$ 
+    \item[(2)] On the event $\{P_i \le \alpha \hat{K}/m\}$, we have $\hat{K}_{- i} = \hat{K}$. In particular, if $i \in \hat{I}$ (BH rejects $i$), then $\hat{K}_{- i} = \hat{K}$.
+\end{itemize}
+\end{lemma} 
+
+\begin{pr}
+\textbf{(Idea)} Replacing $p_i$ by 0 can only decrease one p-value, so the BH rejection count cannot decrease, giving $\hat{K}_{- i} \ge \hat{K}$. Moreover, if BH rejects $i$ (equivalently $P_i \le \epsilon \hat{K}/m$), then replacing $P_i$ by 0 does not change the maximal feasible rejection index, so $\hat{K}_{- i} = \hat{K}$. 
+\end{pr}
 \end{example}
+
+More generally, suppose we have $\text{CI}_i(1 - \alpha)$ that are independent, valid and nested for each $i\in[m]$. Define 
+\[
+P_i := \sup\{\alpha \in [0, 1] : 0 \notin \text{CI}_i(1 - \alpha)\}.
+\]
+Then $0 \notin \text{CI}_i(1 - \alpha)$ holds iff $p_i \le \alpha$. So running BH on these $(P_i)$ selects the largest set of indices for which, at the BH cutoff level $a = \alpha \hat{K}/m$, the reported intervals exclude 0.
+
+\begin{pr}
+    \textbf{(Theorem 1.4.1)}
+\begin{align*}
+    \text{FCR} &= \mathbb{E}[\text{FCP}] \\
+    &= \mathbb{E} \left[ \frac{\# \text{ reported CIs that do not cover}}{\max\{1, \# \text{ reported CIs}\}} \right] \\
+    &= \mathbb{E} \left[ \frac{\sum_{i \in I} \mathbbm{1}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \}}{\max\{1, \hat{K}\}} \right] \\
+    &= \sum_{i=1}^m \mathbb{E} \left[ \frac{\mathbbm{1}_{i \in I} \cdot \mathbbm{1}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \}}{\max\{1, \hat{K}\}} \right]\\
+    &= \sum_{i=1}^m \mathbb{E}\left[\mathbb{E} \left[ \frac{\mathbbm{1}_{i \in I} \cdot \mathbbm{1}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \}}{\max\{1, \hat{K}\}} \Bigg| \textup{ data for all tests except }i\right]\right] \\
+    &\leq \sum_{i=1}^m \mathbb{E} \left[\frac{\mathbb{P}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \mid \hat{K}_{-i}\}}{\hat{K}_{-i}} \right]\\
+    &\leq \sum_{i=1}^m \mathbb{E} \left[\frac{\frac{\alpha \hat{K}_{-i}}{m}}{\hat{K}_{-i}} \right] = \alpha
+\end{align*}
+
+Recall $i\in \hat{I}$ implies $\hat{k} = \hat{k}_{-i}$, i.e.
+$$
+\frac{\mathbbm{1}_{i\in I}\mathbbm{1}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \}}{\max\{1, \hat{K}\}} \leq \frac{\mathbbm{1}\{ \text{CI}_i(1 - \frac{\alpha \hat{K}}{m}) \text{ does not cover} \}}{\hat{K}_{-i}}. 
+$$
+\end{pr}
