@@ -1,7 +1,7 @@
 \subsection{Permutation and Randomization Tests}
 
 \datum{Lecture 7: 01/27}
-\emph{\textbf{Goal.}} We want a strategy to compute a p-value for testing a hypothesis when we do no trust / want to assume a parametric model that would give a closed-form null distribution. We do this by recomputing a test statistic under transformation of the observed data that are valid under $H_0$.
+\emph{\textbf{Goal.}} We want a strategy to compute a p-value for testing a hypothesis when we do no trust / want to assume a parametric model that would give a theoretical null distribution. We do this by recomputing a test statistic under transformation of the observed data that are valid under $H_0$.
 
 Let $T\colon \textup{data} \rightarrow \mathbb{R}$ with larger $T$ iff there is more evidence against $H_0$. Write $T_{\textup{obs}} := T(\textup{observed data})$ for the observed value of the test statistic. For example, for testing independence with real-valued, one can define $T:= | \textup{Sample Correlation}|$. 
 
@@ -17,7 +17,7 @@ If we assume a parametric model, we might compute the null distribution of $T$ a
     H_0 \colon X \perp Y \quad \textup{or equivalently }(X,Y)\sim P_X \times P_Y \quad \textup{vs.} \quad H_1 \colon X\not\perp Y.
     $$
 
-    Let $T((X_1,Y_1),\dots,(X_n,Y_n))$ be a test statistic like sample correlation. The question is how to generate $\hat{T}_1, \dots, \hat{T}_m$ representing what $T$ would look like under $H_0$.
+    Let $T((X_1,Y_1),\dots,(X_n,Y_n))$ be a test statistic like sample correlation. The question is how to estimate the null distribution of $T$.
 
     \begin{itemize}
         \item[\textbf{Case 1:}] We know both marginals $P_X$ and $P_Y$. Then $$H_0\colon (X_i, Y_i)\stackrel{i.i.d.}{\sim} P_X\times P_Y$$ and we can simulate i.i.d. null datasets $(\Tilde{X}_1^{(m)}, \Tilde{Y}_1^{(m)}), \dots, (\Tilde{X}_m^{(m)}, \Tilde{Y}_m^{(m)}) \stackrel{i.i.d.}{\sim} P_X\times P_Y$ for $m=1,\dots, M$ and compute $\hat{T}_m = T\left((\Tilde{X}_1^{(m)}, \Tilde{Y}_1^{(m)}), \dots, (\Tilde{X}_m^{(m)}, \Tilde{Y}_m^{(m)})\right)$. Under $H_0$ $$T, \hat{T}_1,\dots, \hat{T}_M \textup{ are i.i.d from the null distribution.}$$
@@ -147,3 +147,30 @@ By exchangeability under $H_0$, the rank $k$ is uniform on $\{1, \dots, M + 1\}$
 \end{pr}
 
 Small $M$ is fine for validity (super-uniformity still holds). It mainly affects power/resolution: the $p$-value cannot be smaller than $1/(M + 1)$, so very small $p$-values require larger $M$. The main technical challenge in applications is verifying exchangeability (i.e., choosing a shuffling/resampling scheme that is valid under $H_0$).
+
+\datum{Lecture 8: 01/29}
+
+Given a test statistic $T\colon \textup{data} \rightarrow \mathbb{R}$, we want to compute its p-value and ideally have $p= \sup_{\textup{any dist. in $H_0$}}\mathbb{P}\left( T(\textup{data}) \geq \right)$. We can compute/estimate the null distribution of $T$ either imposing assumptions on the data (parametric model) or randomization/permutation tests.
+
+\emph{\textbf{Why randomization/permutation tests may fail?}} Model assumptions may be incorrect. For permutation test, we assume that the data distribution is invariant to permutations.
+
+\begin{example}
+    Testing conditional independence with null hypothesis $H_0 = X \perp Y \mid Z$ with data $(X_1,Y_1,Z_1),\dots, (X_n,Y_n,Z_n) \sim (X,Y,Z)$. Alternative notation: Regress $Y\sim X_1+\dots+X_p$ and test $Y \perp X_j \mid (X_k)_{k\neq j}$. 
+
+    \begin{itemize}
+        
+    \item \textbf{Parametric model:} $Y = \beta_0 + \beta_x X + \beta_Z Z + \mathcal{N}(0,\sigma^2)$, then $H_0$ is true iff $\beta_X=0$. $\beta_X$ distribution is known or has asymptotic approximation and we can compute a p-value for $\beta_X = 0$.
+
+    \item \textbf{Randomization test:} $\hat{T}_1 = T((\tilde{X}_1,Y_1,Z_1),\dots,(\tilde{X}_n,Y_n,Z_n))$ where $\Tilde{X}_i$ is sample from $X\mid Z$ and repeat for $\hat{T}_2$ and so on. Then $\mathbb{P}_{(X,Y,Z)} = \mathbb{P}_{X}\times\mathbb{P}_{Y\mid Z}\times \mathbb{P}_{X\mid (Y,Z)} = \mathbb{P}_{X}\times\mathbb{P}_{Y\mid Z}\times \mathbb{P}_{X\mid Z}$
+    
+    \item \textbf{Permutation test:} Since $X$ is not independent of $Z$, permuting $X$ does not preserve the null distribution. Under $H_0$ joint distribution of $(X,Y,Z)$ can be written as $\mathbb{P}_{(X,Y,Z)} = \mathbb{P}_{Z}\times\mathbb{P}_{X\mid Z}\times \mathbb{P}_{Y\mid Z} = \mathbb{P}_{(Y,Z)}\times \mathbb{P}_{X\mid Z}$. 
+
+    \item \textbf{Local Permutation test:} Cluster $Z_1,\dots,Z_n$ into groups $\mathcal{Z} = \mathcal{Z}_1 \cup \dots \cup Z_k$. Then permute $X_1,\dots,X_n$ such that all data points stay in the same cluster. And permute $(X_{\pi(1)}, \dots, X_{\pi(n)}) \quad$ where $\pi$ is chosen at random from the set $\{ \pi : \forall i \in [n], Z_i \text{ \& } Z_{\pi(i)} \text{ are in the same cluster} \}$.
+    
+    This strategy is a valid approximation as long as $\mathbb{P}_{X|Z=z_i} \approx \mathbb{P}_{X|Z=z_j}$ whenever $z_i$ \& $z_j$ are in the same cluster.
+    
+    \emph{\textbf{Note:}} If clusters are too small (e.g., each cluster has one $z_i$): Then the valid set of permutations only consists the identity $\{\textup{I}_d\}$ and $\tilde{T}_i = T$ because permuted $X = X \rightarrow p\text{-value} = 1$.
+
+    There is a tradeoff, as smaller $\mathcal{Z}_k$'s offer more validity as the approximation is more accurate. Whereas larger $\mathcal{Z}_k$'s have more allowed permutation, potentially higher power.
+\end{itemize}
+\end{example}
