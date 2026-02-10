@@ -247,7 +247,7 @@ If p-values satisfy PRDS, then Benjamini-Hochberg satisfies $\textup{FDR} \leq \
 \datum{Lecture 5: 01/20}
 Define $\pi_0 := \frac{m_0}{m}$, then choosing the significance level at $\frac{\alpha}{\pi_0}$ would guaranty FDR $< \alpha$ by the previous theorem. So an idea would be to estimate $\pi_0$. 
 
-Here is the updated LaTeX code.I have made the following changes:Red Line: Changed dashed to solid (removed the style option) and added the label $m \cdot U[0,1]$ at the right end.New Dotted Line: Added a thick dotted line from $x=0.2$ ($t$) to $x=1$ at $y=0.8$. I chose $y=0.8$ because the "Non-Discovery" bars in your data cluster tightly around that value, representing the true null density ($m_0$).Code snippet\begin{figure}[h!]
+\begin{figure}[h!]
     \centering
 \begin{tikzpicture}[scale=0.6]
 \begin{axis}[
