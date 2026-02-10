@@ -169,8 +169,6 @@ Given a test statistic $T\colon \textup{data} \rightarrow \mathbb{R}$, we want t
     
     This strategy is a valid approximation as long as $\mathbb{P}_{X|Z=z_i} \approx \mathbb{P}_{X|Z=z_j}$ whenever $z_i$ \& $z_j$ are in the same cluster.
     
-    \emph{\textbf{Note:}} If clusters are too small (e.g., each cluster has one $z_i$): Then the valid set of permutations only consists the identity $\{\textup{I}_d\}$ and $\tilde{T}_i = T$ because permuted $X = X \rightarrow p\text{-value} = 1$.
-
-    There is a tradeoff, as smaller $\mathcal{Z}_k$'s offer more validity as the approximation is more accurate. Whereas larger $\mathcal{Z}_k$'s have more allowed permutation, potentially higher power.
+    \emph{\textbf{Note:}} If clusters are too small (e.g., each cluster has one $z_i$): Then the valid set of permutations only consists the identity $\{\textup{I}_d\}$ and $\tilde{T}_i = T$ because permuted $X = X \rightarrow p\text{-value} = 1$. There is also a tradeoff, as smaller $\mathcal{Z}_k$'s offer more validity as the approximation is more accurate. Whereas larger $\mathcal{Z}_k$'s have more allowed permutation, potentially higher power.
 \end{itemize}
 \end{example}

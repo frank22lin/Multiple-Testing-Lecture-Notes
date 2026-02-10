@@ -1,0 +1,140 @@
+\subsection{Selective and Post-selection Inference}
+
+If assumptions are not correct, inference may not be valid.
+\textbf{Linear model assumes:}
+\begin{itemize}
+    \item Effect of every $X_j$ is linear.
+    \item $X_j$'s effects combine additively.
+    \item All relevant covariates have been included.
+    \item Noise is Gaussian (or at least not heavy-tailed).
+    \item Noise terms have constant variance (regardless of values of $X$).
+\end{itemize}
+
+If we use data to help find setting in which linear model is true:
+\[ 
+\left.
+\begin{array}{l}
+\text{- Transformations of } X_j \\
+\text{- Transformation of } Y \\
+\text{- Selecting covariates to add/remove}
+\end{array}
+\right\} \to \begin{array}{c} \text{Problem of} \\ \text{selective inference /} \\ \text{post-selection} \\ \text{inference.} \end{array}
+\]
+
+\textbf{Note:} typically, ``selective'' / ``post-selection'' inference refers to choosing which covariates / hypotheses to test.
+
+\textbf{Additional challenges to high-dimensional setting: ($n < p$)}
+\begin{itemize}
+    \item No assumptions on $\beta$ -- problem of identifiability.
+    \item If we assume $\beta$ is sparse.
+\end{itemize}
+
+Typically, we need to assume sparsity level $k$ that is $\lesssim \frac{n}{\log p}$.
+\begin{itemize}
+    \item[$\hookrightarrow$] Can we estimate $\beta$ and perform inference on $\beta_j$'s, if we assume sparsity?
+\end{itemize}
+
+\textbf{Intuitively:} Select $k$ covariates to include, then perform inference on these $k$ $\beta_j$'s.
+\begin{itemize}
+    \item[$\hookrightarrow$] \textbf{Challenges:} (1) selection bias / selective inference
+    \item[] \hspace{5.5mm} (2) interpretation given selected set
+\end{itemize}
+
+\begin{itemize}
+    \item[$\hookrightarrow$] If we remove covariates from model, $\beta_j$ now represents association of $Y$ with $X_j$ when controlling for a \underline{reduced} set of other covariates.
+\end{itemize}
+
+\textbf{Concrete question: how to perform inference on $\beta_j$ using estimated $\hat{\beta}$ from Lasso}
+
+\[ \hat{\beta} = \text{argmin} \left( \frac{1}{2} ||Y - X\beta||_2^2 + \lambda ||\beta||_1 \right) \]
+
+Can we use $\hat{\beta}_j$ to test $\beta_j = 0$ or to build CI for $\beta_j$?
+
+\textbf{Challenges:}
+\begin{itemize}
+    \item Selective inference choosing set of non-zero $\hat{\beta}_j$
+    \item If $\beta_j \neq 0$, nonetheless may have $\hat{\beta}_j = 0$ or may underestimate magnitude $\mathbb{E}[\hat{\beta}_j] \neq \beta_j$ due to \textbf{shrinkage bias}
+    \item Bias $\mathbb{E}[\hat{\beta}_j - \beta_j]$ hard to quantify: noise $\hat{\beta}_j - \mathbb{E}[\hat{\beta}_j]$ has unknown distribution
+\end{itemize}
+
+\textbf{An attempted solution:}
+\begin{itemize}
+    \item Run Lasso to select $S \subseteq [p]$ subset of covariates
+    \item Then run least squares on reduced model (\textbf{severe selection bias})
+\end{itemize}
+
+\textbf{Data splitting --}
+\begin{enumerate}
+    \item Run Lasso on half the data to choose $S \subseteq [p]$
+    \item Run last squares using other half of data.
+\end{enumerate}
+
+\textbf{Challenges:}
+\begin{itemize}
+    \item Reduced sample size
+    \item By reducing the model, may lose validity of model or set of $X_j$, changing the interpretation of $\beta_j$
+\end{itemize}
+
+\textbf{If we do not split data:} Can control for multiplicity:
+\begin{itemize}
+    \item Build CI's via FCR controlling procedure
+\end{itemize}
+
+\emph{\textbf{Selective Inference}}
+
+Lasso for choosing $S \subseteq [p]$ | Least squares on same data
+
+For fixed $j \in [p]$ in linear regression:
+\[ \hat{\beta}_j \sim \mathcal{N}\left( \beta_j, \sigma^2(X^TX)^{-1}_{jj} \right) \quad \text{e.g. under null: } \beta_j = 0: \]
+\[ \hat{\beta}_j \sim \mathcal{N}\left( 0, \sigma^2(X^TX)^{-1}_{jj} \right) \xrightarrow{\text{calculate}} \mathbb{P}_{H_0}\{ |\hat{\beta}_j| \ge z^* \} \]
+
+But, if $j \in [p]$ is chosen in a data dependent way
+\[ \text{may be bigger } \hookrightarrow \mathbb{P}( |\hat{\beta}_j| \ge z^* \mid j \text{ is selected} ) \]
+
+In general for any test statistic $T$,
+\[ \text{Null distribution} \neq \text{Null distribution of } T \mid \text{selected event} \]
+\[ \text{most severe if selection outcome is highly random / each possible outcome has low prob.} \]
+
+\datum{02/10/2026: Lecture 11}
+\textbf{Key challenge:} Distribution of $T$ under $H_0$ vs. Distribution of $T$ under $H_0$ conditional on the event that we choose to test $H_0$ with this $T$.
+This may be $\neq$ in general and may be different if selection event is unlikely.
+
+\textbf{General principle to correct for selection bias, our options include:}
+\begin{itemize}
+    \item Use data for inference that is $\perp\!\!\perp$ of selection (e.g. data splitting) or at least boost the independence.
+    \item Use multiplicity correction (e.g. Bonferroni, FCR) to account for all possible choices that could have been selected.
+    \item Perform inference using distribution conditional on the selection event
+\end{itemize}
+
+\begin{example}
+    Applying selective inference strategy to linear regression.
+
+    Distribution of data (before selection): $Y\sim\mathcal{N}(\mu,\sigma^2\text{I}_{n})$ wtih $\mu=X\beta$.
+
+    We will consider selection events that can be described via an intersection of linear inequalities, i.e. events of the form $Y\in \{y\in\mathbb{R}^n\colon Ay\leq b\}$. We will test parameters of the form $\eta^\top \mu$ using test statistic $\eta^\top y$ for finitely many possible vectors $\eta \in \mathbb{R}^n$.
+
+    Selection event of the form $Y\in \{y\in\mathbb{R}^n\colon Ay\leq b\}$ is sufficient to express selection procedures such as 
+    \begin{itemize}
+        \item Forward stepwise
+        \item Marginal screening
+        \item Lasso
+        \item And others
+    \end{itemize}
+    \emph{\textbf{Note.}} In order to express the selection event in this form, may need to include additional information (e.g. order of selected covariate in forward stepwise).
+
+    Selection procedure creates a partition (ignoring sets of measure 0) where $\mathbb{R}^n = \mathcal{Y}_1\cup \cdots \cup \mathcal{Y}_K$ where $\mathcal{Y}_k = \{y \colon A_ky\leq b_k\}$ with $A_k\in\mathbb{R}^{m_k\times n}$ and $b_k \in \mathbb{R}^{m_k}$.
+
+    Distribution of $Y$ is $\sum_{k=1}^K\mathbb{P}[Y\in\mathcal{Y}_k] \cdot (\textup{Distribution of }Y\mid Y\in\mathcal{Y}_k)$. (Two-tailed test can be seen as selection inference conditioning on sign of $Y$)
+
+    \textbf{Selective inference idea:} If $Y\in \mathcal{Y}_k$ determines the selection, then we can perform using $(\textup{Distribution of }Y\mid Y\in\mathcal{Y}_k)$.
+
+    \textbf{What parameters to test?} Test parameters $\eta_{k,1}^\top\mu, \dots, \eta_{k,r_k}^\top$, e.g. $\mathcal{Y}_k$ corresponds to choosing coordinates $X_1$ and $X_7$ and want to test coeeficients on $X_1,X_7$ in the regression.
+
+    In a low-dimensional setting $(p<n)$ least-squares gives $\hat{\beta} = (X^\top X)^{-1}X^\top Y$ and $\hat{\beta}_1 = [\underbrace{e_1 (X^\top X)^{-1}X^\top}_{\eta^\top}]Y$. Then $\eta^\top Y$ estimates $\eta^\top \mu$.
+
+    In general (may have $p > n$). Partial regression coefficients: coef. on $X_j$ in a submodel regressing $Y$ on a subset $S\subseteq [p]$ of covariates. If $S=\{1,7\}$, we want to find an $\eta$ that extracts the coefficients on $X_1$in this regression.
+
+    $$\hat{\beta}^S = (X_S^\top X_S)^{-1}X_S^\top Y$$ with $X_S \in \mathbb{R}^{n\times |S|}$ is a submatrix of $X$. And $\hat{\beta}_j^S$ is coefficient of $X_j$ in regression for submodel $S$ and is $\eta^\top Y$ where $\eta^\top = e_{j'}(X^\top_S X_S)^{-1} X^\top_s$.
+
+    Interpreting these parameters: $\hat{\beta}_j$ estimates $\beta^S_j = e_{j'}(X_S^\top X_S)^{-1}X_S^\top \mu = \beta_j + e_{j'}^\top (X_S^\top X_S)^{-1}$ FINISH THIS
+\end{example}

@@ -1,2 +1,118 @@
-\subsection{High-dimensional Inference}
-\datum{Lecture 9: 02/03}
+\subsection{Challenges in High-dimensional Inference}
+
+\datum{Lecture 9}
+
+\textbf{Challenges (particularly in high dimensions)}
+\begin{itemize}
+    \item Using model to compute null distribution for $T$
+    \begin{itemize}
+        \item[$\hookrightarrow$] model may be incorrect
+        \item[$\hookrightarrow$] challenging to compute distribution
+    \end{itemize}
+    \item Using randomization requires model for some part of data
+    \begin{itemize}
+        \item[$\hookrightarrow$] model may be incorrect / estimate poorly
+    \end{itemize}
+    \item Using local permutation test for testing $X \perp \!\! \perp Y \mid Z$ (more generally, using some type of permutation to estimate null)
+    \begin{itemize}
+        \item[$\hookrightarrow$] permutations chosen may not preserve null distribution
+        \item e.g. in local permutation test, if bias is too large (same bin $Z_i$ but far away)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Strategies to check for or reduce loss of validity due to incorrect assumptions}
+\begin{enumerate}
+    \item Try to make assumptions explicit (e.g. local permutation test assuming $P_{X|Z}$ is approx. the same across all $Z$-values in bin).
+    \item Aim for ``double robustness''
+    \begin{itemize}
+        \item[$\hookrightarrow$] validity holds if any \underline{one} of several assumptions hold.
+    \end{itemize}
+    \[
+    \text{e.g. } \text{Validity of local perm. test} \quad \longleftarrow \text{OR} \longrightarrow \quad \text{linear model } Y|X+Z \text{ (use test statistic)}
+    \]
+    \item Run simulations to check how sensitive method is to our assumptions.
+    \begin{itemize}
+        \item[$\hookrightarrow$] Mix of real \& simulated data often useful
+    \end{itemize}
+    \textbf{e.g.} $X \perp \!\! \perp Y | Z$ local perm. test.\\
+    Create synthetic $\tilde{Y} = f(Z) + \text{noise}$
+    $
+    \underbrace{X, \tilde{Y}, Z}_{\substack{\hookrightarrow \text{ local perm. test} \\ \hookrightarrow \text{ by construction } H_0 \text{ true}}}
+    $
+\end{enumerate}
+
+
+\subsection{Inference in Gaussian Linear Regression}
+
+\textbf{Model:} $Y = \beta_1 X_1 + \dots + \beta_p X_p + \varepsilon$, where $\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$
+
+\textbf{Data:} $(X_i, Y_i) \quad i=1, \dots, n$
+\[
+Y_i = \beta_1 X_{i,1} + \dots + \beta_p X_{i,p} + \varepsilon_i \quad \vline \quad \begin{cases} \varepsilon_1, \dots, \varepsilon_n \sim \mathcal{N}(0, \sigma^2) \\ X_i = (X_{i,1}, \dots, X_{i,p}) \text{ fixed} \end{cases}
+\]
+
+\textbf{Inference targets:} $\beta_j$
+\begin{itemize}
+    \item Test $H_{0,j} : \beta_j = 0$
+    \item Build CI for $\beta_j$
+\end{itemize}
+
+If $p \le n$: least squares estimator $\hat{\beta} = \underset{\beta \in \mathbb{R}^p}{\text{argmin}} \left( \sum (Y_i - (\beta_1 X_{i,1} + \dots + \beta_p X_{i,p}))^2 \right)$
+\begin{align*}
+    \Leftrightarrow \hat{\beta} &= \underset{\beta}{\text{argmin }} ||Y - X\beta||_2^2 \\
+    \Rightarrow \hat{\beta} &= (X^\top X)^{-1} X^\top Y
+\end{align*}
+
+In high dim. setting $n < p$:
+\begin{itemize}
+    \item Problem of identifiability for $\beta \neq \beta'$ with $\beta_1 X_1 + \dots + \beta_p X_p = \beta'_1 X_1 + \dots + \beta'_p X_p$
+    \item Least squares not well defined
+    \begin{itemize}
+        \item[$\hookrightarrow$] $X^\top X$ not invertible
+        \item[$\hookrightarrow$] minimization has infinitely many solutions, all of which satisfy $X\beta = Y$.
+    \end{itemize}
+\end{itemize}
+
+So we need additional assumption for high dimensions
+\begin{enumerate}
+    \item \textbf{Sparsity} -- believe most $\beta_j = 0$ or $\beta_j \approx 0$
+\end{enumerate}
+
+We may replace least squares with sparsity-constrained least squares:
+\[
+\hat{\beta} = \underset{\substack{\beta \in \mathbb{R}^p \\ ||\beta||_0 \le k}}{\text{argmin}} \left\{ \sum_{i=1}^n (Y_i - (\beta_1 X_{i,1} + \dots)^2) \right\} \quad \text{\small non-convex constraint}
+\]
+
+
+One approach: iterative / greedy algorithm
+\begin{enumerate}
+    \item Start with $S = \emptyset$
+    \item Identify covariate $j \in \{1, \dots, p\}$ that reduces squared error most.
+    \[ \min_{j \in [p]} \min_{\beta_j \in \mathbb{R}} ||Y - X\beta||_2^2 \]
+    $S = S \cup \{j\}$ and repeat.
+\end{enumerate}
+
+\textbf{Alternative:} Approximate optimization problem with convex optimization problem. Lasso
+\[ \hat{\beta} = \underset{\beta \in \mathbb{R}^p}{\text{argmin }} \frac{1}{2} ||X\beta - Y||^2 + \lambda ||\beta||_1 \]
+
+
+
+Background on multivariate Gaussian distribution:
+\begin{itemize}
+    \item Standard Normal $\mathcal{N}(0, I_d) \overset{d}{=} (Z_1, \dots, Z_d) \quad Z_1, \dots, Z_n \overset{i.i.d.}{\sim} \mathcal{N}(0,1)$
+    \item $\mathcal{N}(\mu, \Sigma) : Z \sim \mathcal{N}(0, I_d) \Rightarrow \mu + \Sigma^{1/2} Z \sim \mathcal{N}(\mu, \Sigma)$
+    \item $Z \sim \mathcal{N}(\mu, \Sigma) \Rightarrow \Sigma^{-1/2}(Z - \mu) \sim \mathcal{N}(0, I_d)$
+\end{itemize}
+
+\begin{proposition}
+If $Z \sim \mathcal{N}(\mu, \sigma^2 I_n)$ and if $S, T$ orthogonal subspaces in $\mathbb{R}^n$ then $P_S(Z) \perp \!\! \perp P_T(Z)$.    
+\end{proposition}
+
+
+\begin{example}
+    If $S = \text{span}(e_1, \dots, e_k)$, $T = \text{span}(e_{k+1}, \dots, e_n)$
+    \begin{align*}
+        P_S(Z) &= (Z_1, \dots, Z_k, 0, \dots, 0) \\
+        P_T(Z) &= (0, \dots, 0, Z_{k+1}, \dots, Z_n)
+    \end{align*}
+\end{example}
