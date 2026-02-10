@@ -1,6 +1,7 @@
 \subsection{Selective and Post-selection Inference}
-
+\datum{Lecture 10: 02/05}
 If assumptions are not correct, inference may not be valid.
+
 \textbf{Linear model assumes:}
 \begin{itemize}
     \item Effect of every $X_j$ is linear.
@@ -95,13 +96,13 @@ In general for any test statistic $T$,
 \[ \text{Null distribution} \neq \text{Null distribution of } T \mid \text{selected event} \]
 \[ \text{most severe if selection outcome is highly random / each possible outcome has low prob.} \]
 
-\datum{02/10/2026: Lecture 11}
+\datum{Lecture 11: 02/10}
 \textbf{Key challenge:} Distribution of $T$ under $H_0$ vs. Distribution of $T$ under $H_0$ conditional on the event that we choose to test $H_0$ with this $T$.
 This may be $\neq$ in general and may be different if selection event is unlikely.
 
 \textbf{General principle to correct for selection bias, our options include:}
 \begin{itemize}
-    \item Use data for inference that is $\perp\!\!\perp$ of selection (e.g. data splitting) or at least boost the independence.
+    \item Use data for inference that is $\perp\!\!\perp$ of selection (e.g. data splitting) or at least bound the independence.
     \item Use multiplicity correction (e.g. Bonferroni, FCR) to account for all possible choices that could have been selected.
     \item Perform inference using distribution conditional on the selection event
 \end{itemize}
@@ -120,7 +121,7 @@ This may be $\neq$ in general and may be different if selection event is unlikel
         \item Lasso
         \item And others
     \end{itemize}
-    \emph{\textbf{Note.}} In order to express the selection event in this form, may need to include additional information (e.g. order of selected covariate in forward stepwise).
+    \emph{\textbf{Note.}} In order to express the selection event in this form, may need to include additional information (e.g. order of selected covariates in forward stepwise).
 
     Selection procedure creates a partition (ignoring sets of measure 0) where $\mathbb{R}^n = \mathcal{Y}_1\cup \cdots \cup \mathcal{Y}_K$ where $\mathcal{Y}_k = \{y \colon A_ky\leq b_k\}$ with $A_k\in\mathbb{R}^{m_k\times n}$ and $b_k \in \mathbb{R}^{m_k}$.
 
@@ -128,13 +129,21 @@ This may be $\neq$ in general and may be different if selection event is unlikel
 
     \textbf{Selective inference idea:} If $Y\in \mathcal{Y}_k$ determines the selection, then we can perform using $(\textup{Distribution of }Y\mid Y\in\mathcal{Y}_k)$.
 
-    \textbf{What parameters to test?} Test parameters $\eta_{k,1}^\top\mu, \dots, \eta_{k,r_k}^\top$, e.g. $\mathcal{Y}_k$ corresponds to choosing coordinates $X_1$ and $X_7$ and want to test coeeficients on $X_1,X_7$ in the regression.
+    \textbf{What parameters to test?} Test parameters $\eta_{k,1}^\top\mu, \dots, \eta_{k,r_k}^\top\mu$, e.g. $\mathcal{Y}_k$ corresponds to choosing coordinates $X_1$ and $X_7$ and want to test coefficients on $X_1,X_7$ in the regression.
 
     In a low-dimensional setting $(p<n)$ least-squares gives $\hat{\beta} = (X^\top X)^{-1}X^\top Y$ and $\hat{\beta}_1 = [\underbrace{e_1 (X^\top X)^{-1}X^\top}_{\eta^\top}]Y$. Then $\eta^\top Y$ estimates $\eta^\top \mu$.
 
-    In general (may have $p > n$). Partial regression coefficients: coef. on $X_j$ in a submodel regressing $Y$ on a subset $S\subseteq [p]$ of covariates. If $S=\{1,7\}$, we want to find an $\eta$ that extracts the coefficients on $X_1$in this regression.
+    In general (may have $p > n$). Partial regression coefficients: coefficient on $X_j$ in a submodel regressing $Y$ on a subset $S\subseteq [p]$ of covariates. If $S=\{1,7\}$, we want to find an $\eta$ that extracts the coefficients on $X_1$ in this regression.
 
-    $$\hat{\beta}^S = (X_S^\top X_S)^{-1}X_S^\top Y$$ with $X_S \in \mathbb{R}^{n\times |S|}$ is a submatrix of $X$. And $\hat{\beta}_j^S$ is coefficient of $X_j$ in regression for submodel $S$ and is $\eta^\top Y$ where $\eta^\top = e_{j'}(X^\top_S X_S)^{-1} X^\top_s$.
+    $$\hat{\beta}^S = (X_S^\top X_S)^{-1}X_S^\top Y$$ with $X_S \in \mathbb{R}^{n\times |S|}$ is a submatrix of $X$. And $\hat{\beta}_j^S$ is coefficient of $X_j$ in regression for submodel $S$ and is $\eta^\top Y$ where $\eta^\top = e_{j'}(X^\top_S X_S)^{-1} X^\top_s$ (and $j'$ is the new position of parameter $j$ in subset $S$).
 
-    Interpreting these parameters: $\hat{\beta}_j$ estimates $\beta^S_j = e_{j'}(X_S^\top X_S)^{-1}X_S^\top \mu = \beta_j + e_{j'}^\top (X_S^\top X_S)^{-1}$ FINISH THIS
+    Interpreting these parameters: $\hat{\beta}_j^S$ estimates $$\beta^S_j = e_{j'}(X_S^\top X_S)^{-1}X_S^\top \mu = \beta_j + e_{j'}^\top (X_S^\top X_S)^{-1}X_S^\top (X_S\beta_S+X_{S^\textup{c}}\beta_{S^\textup{c}})=  \beta_j + e_{j'}^\top (X_S^\top X_S)^{-1} X_S^\top X_{S^c}\beta_{S^c}$$
+
+    In linear regression setting:
+    \begin{itemize}
+        \item We want to select a set of partial regression coefficients to test $\beta_j^S$, i.e. select a model $S\subseteq [p]$ and test $\beta_j^S$ for each $j\in S$
+        \item Selection event is of the form $\{y \colon Ay\leq b\}$
+    \end{itemize}
+    And we need to compute distribution of $\eta^\top  Y\mid AY\leq b$, i.e. distribution of $\hat{\beta}_j^S \mid \textup{select }S$
+    \emph{\textbf{Note.}} Marginal distribution of $\eta^\top Y$ is $\mathcal{N}(\eta^\top \mu, \sigma^2\lVert\eta\rVert_2^2)$.
 \end{example}
