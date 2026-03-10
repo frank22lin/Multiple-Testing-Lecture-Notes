@@ -147,3 +147,78 @@ This may be $\neq$ in general and may be different if selection event is unlikel
     And we need to compute distribution of $\eta^\top  Y\mid AY\leq b$, i.e. distribution of $\hat{\beta}_j^S \mid \textup{select }S$
     \emph{\textbf{Note.}} Marginal distribution of $\eta^\top Y$ is $\mathcal{N}(\eta^\top \mu, \sigma^2\lVert\eta\rVert_2^2)$.
 \end{example}
+
+
+\datum{Lecture 12: 02/12}
+
+\emph{\textbf{Selective Inference for Gaussian Linear Regression}}
+\begin{itemize} 
+    \item[(1)] Data $\sim$ distribution 
+    \item[(2)] Select a target for inference + test statistic $T$
+    \item[(3)] Compute distribution of $T$ conditional on (2)
+\end{itemize}
+
+For linear regression $Y\sim \mathcal{N}(\mu,\sigma^2 \textup{I}_n)$, the target is $\beta_j^S = e^\top_{j'}(X_S^\top X_S)^{-1}X_S^\top \mu = \eta^\top\mu$. The test statistic is $\hat{\beta}_j^S = \eta^\top Y$. What is the distribution of $\eta^\top Y \mid \textup{selected event}?$ We will consider selection events of the form $\{y\colon Ay\leq b \}$.
+
+\textbf{Note.} If the selection event returns multiple inference questions, we would need to correct for multiplicity.
+
+\textbf{Remaining Question.} What is the distribution of $\eta^{\top} Y \mid Ay \leq b$ without conditioning, i.e. $\eta^\top Y \sim \mathcal{N}(\underbrace{\eta^\top\mu}_{\text{target (unknown)}}, \underbrace{\sigma^2\lVert \eta\rVert_2^2}_{\text{known}})$. This does not depend on  $P_\eta^\perp(\mu)$.
+
+
+\textbf{Problems:} In general, the distribution of $\eta^{\top} Y \mid Ay \leq b$ depends both on $\eta^\top \mu$ and $P^\perp_\eta (\mu)$, which is a $n-1$-dimensional nuisance parameter (\textit{Statistical}) Also, distribution has no simple expression and is hard to sample from (\textit{Computational}).
+
+\textbf{Solution:} Condition on additional information $P_\eta^\perp(Y)$.
+
+Data $Y\sim \mathcal{N}(\mu,\sigma^2\textup{I}_n)$. Identify which selection event contains $Y$, i.e. prespecified pattern $\mathbb{R}^n = \mathcal{Y}_1\cup\dots\cup\mathcal{Y}_K$ and $\mathcal{Y}_k = \{y\colon A_k y \leq b_k \}$ and identify the index $k$ such that $Y\in\mathcal{Y}_k$. $\mathcal{Y}_k$ determines the inference targets $\eta_{k,1}^\top\mu, \dots, \eta_{k,r_k}^\top \mu$. 
+
+For each $j$, inference on $\eta^\top_{k,j}\mu$: condition on additional information $P^\perp_{\eta_{k,j}}(Y)$ and compute distribution of $\eta^\top_{k,j}Y \mid \{A_kY\leq b_K \}, P^\perp_{\eta_{k,j}}(Y)$ + use for inference. (\textbf{Note}: may need multiplicity correction)
+
+\begin{example}
+    Suppose we want to perform inference on $\mu_j$ where $j= \operatorname{argmax}_i|Y_i|$ (selection event) with $2n$ selection events $j^+, j^-$ for each $j=1,\dots,n$. For $j^+ \implies Y_j \geq 0$ and $|Y_j| \geq |Y_i| \quad \forall i\neq j \iff (Y_j \geq 0), Y_j\geq Y_i 
+\wedge Y_j\geq -Y_i\quad \forall i\neq j$ ($2(n-1)$ equalities).
+    
+    For $j^+ \implies \eta=e_j, \quad \eta^\top\mu = \mu_j$.\\
+    For $j^- \implies \eta=-e_j, \quad \eta^\top\mu = -\mu_j$.
+
+For $j^+$, we have $P_y^\perp(Y) = (Y_1,\dots, Y_{j-1}, 0 , Y_{j+1},\dots, Y_n)$, the distribution of $Y_j \mid$ selection event $j^+$, is marginally $Y_j \sim \mathcal{N}(\mu_j, \sigma^2)$ and the conditional distribution of $Y_j$ is $TN(\mu_j, \sigma^2; \max_{i\neq j}|Y_i|. \infty)$ and for testing $H_{0,j}\colon \mu_j = 0$, we have p-value $\frac{1-\Phi\left(\frac{Y_j}{\sigma}\right)}{1-\Phi\left(\frac{\max_{i\neq j}|Y_i|}{\sigma}\right)}$ 
+    
+\end{example}
+
+What is the conditional distribution of $\eta^\top Y \mid \{Ay\leq B\}, P_\eta^\perp(Y)$. Before conditioning $\eta Y \sim \mathcal{N}(\eta^\top Y, \sigma^2 \lVert\eta\rVert_2^2)$ and $\eta^\top Y \perp P_\eta^\perp(Y)$. We have
+\begin{align*}
+    Y = P_\eta(Y) + P_\eta^\perp(Y) = \eta^\top y \frac{\eta}{\lVert \eta\rVert_2^2}  + P_\eta^\perp(Y),
+\end{align*}
+which both are observed.
+\begin{align*}
+Ay \le b &\iff a_j^T y \le b_j \quad \forall j=1\dots m \\
+&\iff a_j^T \left( \eta^T y \cdot \frac{\eta}{\|\eta\|_2^2} + P_\eta^\perp(y) \right) \le b_j \quad \forall j \\
+&\iff \underset{\text{observed}}{\eta^T y} \cdot \frac{a_j^T \eta}{\|\eta\|_2^2} \le b_j - a_j^T P_\eta^\perp(y) \quad \forall j
+\end{align*}
+
+\begin{align*}
+\text{i.e.} \quad &\forall j, \text{ with } a_j^T \eta > 0, \quad \eta^T y \le \frac{b_j - a_j^T P_\eta^\perp(y)}{a_j^T \eta / \|\eta\|_2^2} \\
+&\forall j \text{ with } a_j^T \eta < 0, \quad \eta^T y \ge \dots \leftarrow \text{same}
+\end{align*}
+
+\[
+\text{Let } R = \min_{j : a_j^T \eta > 0} \left\{ \frac{b_j - a_j^T P_\eta^\perp(y)}{a_j^T \eta / \|\eta\|_2^2} \right\} \text{ or } \infty \text{ if no such } j
+\]
+
+$\text{What is the conditional distribution of } \eta^T y \mid \{Ay \le b\}, P_\eta^\perp(y)?$
+
+It is $TN(\eta^T \mu, \sigma^2 \|\eta\|_2^2; L, R) \quad \text{depend on } A, b, P_\eta^\perp(y) \text{ with p-value} = \frac{\Phi\left(\frac{R}{\sigma\|\eta\|_2}\right) - \Phi\left(\frac{\eta^T y}{\sigma\|\eta\|_2}\right)}{\Phi\left(\frac{R}{\sigma\|\eta\|_2}\right) - \Phi\left(\frac{L}{\sigma\|\eta\|_2}\right)}$
+
+How to convert the Lasso selection procedure into an event of the form $\{y\colon Ay\leq b\}$?
+\begin{itemize}
+    \item fixed $\lambda > 0$
+    \item $\text{sign}(\hat{\beta}_j)_{\text{lasso}}$ determines the selection, i.e. \begin{equation}
+        \text{sign}(\hat{\beta}_j)_{\text{lasso}} =
+    \begin{cases}
+        +1 & X_j \text{ selected with +,}\\
+        -1 & X_j \text{ selected with -,}\\
+        0 & X_j \text{ not selected }.
+    \end{cases}
+    \end{equation} which we want to express in the form $\{Ay\leq B\}$.
+\end{itemize}
+
+

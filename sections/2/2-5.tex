@@ -1,0 +1,207 @@
+\subsection{Selective Inference with FDR Control \& Knockoffs}
+\datum{Lecture 14: 02/19}
+Ultimately, we want a conditional p-value $p_j$ satisfying:
+\[ \mathbb{P}_{H_{0,j}} \{ p_j \le \alpha \mid j \in S \} \le \alpha \]
+\begin{center}
+    \textit{(or we might condition on the specific set $S$)}
+\end{center}
+
+\noindent Or, equivalently, a valid conditional confidence interval:
+\[ \mathbb{P} \{ \theta_j \in CI_j \mid j \in S \} \ge 1 - \alpha \]
+
+We can use the p-values returned by selective inference if our goal is to return a selected set with FDR control. For example, in linear regression, we might want to select a set of covariates where a true positive is defined as any $X_j$ with $\beta_j \neq 0$.
+
+\emph{\textbf{Knockoffs}}.
+
+\textbf{Goal:} Given data $(X_1, Y_1), \dots, (X_n, Y_n) \in \mathbb{R}^p \times \mathbb{R}$, return a subset $\hat{S} \subseteq [p]$ such that:
+\[ \text{FDR} \le \alpha \quad \text{where} \quad \text{FDR} = \mathbb{E} \left[ \frac{|\hat{S} \cap \mathcal{H}_0|}{\max(1, |\hat{S}|)} \right] \]
+Here, $\mathcal{H}_0 \subseteq [p]$ is the set of true nulls.
+
+\begin{itemize}
+    \item \textbf{Setting 1:} Low-dim Gaussian linear model.\\
+    $X$ is fixed. $Y_i = \sum_{j=1}^p X_{ij}\beta_j + \mathcal{N}(0, \sigma^2)$. \\
+    $\mathcal{H}_0 = \{j : \beta_j = 0\}$.
+    
+    \item \textbf{Setting 1.5:} High-dim Gaussian linear model. \\
+    $\mathcal{H}_0$ is defined relative to a submodel $\beta_i^S$.
+    
+    \item \textbf{Setting 2:} Model-X setting. \\
+    $\mathcal{H}_0 = \{j : X_j \perp\!\!\!\perp Y \mid (X_k)_{k \neq j} \}$.
+\end{itemize}
+
+Given an increasing sequence of candidate models $\emptyset \in S_1 \subseteq S_2 \subseteq \dots$ (e.g., from forward stepwise selection), what is the largest model in the sequence that still allows FDR control?
+
+\noindent \textbf{Idea:} If we can estimate $\text{FDP}(S_t)$ for each $t=0,1,\dots$, we can choose the largest possible $S_t$ (i.e., largest $t$) with $\widehat{\text{FDP}} \le \alpha$.
+
+\emph{\textbf{The Knockoffs Procedure}}
+
+\begin{enumerate}
+    \item Create fake variables $\tilde{X}_1, \dots, \tilde{X}_p$ (where $\tilde{X}_j$ is the ``knockoff'' for $X_j$).
+    \item Regress $Y$ on $X_1, \dots, X_p, \tilde{X}_1, \dots, \tilde{X}_p$ and construct candidate models.
+    \item Estimate the FDP of each model by counting the \# of knockoffs selected.
+\end{enumerate}
+\emph{\textbf{How to use knockoffs to estimate FDP}}
+
+Given a single model $S$ (Note: $S$ may contain $X_j$'s and/or $\tilde{X}_j$'s):
+\[ \text{FDP}(S \cap \{X_1, \dots, X_p\}) = \frac{\# X_j \in S \cap \mathcal{H}_0}{\max(1, \# X_j \in S)} \]
+
+\noindent \textbf{Intuition:} Construct knockoffs such that if $X_j \in \mathcal{H}_0$, then $X_j$ and $\tilde{X}_j$ are equally likely to be (incorrectly) selected. 
+\begin{align*}
+    \# X_j \in S \cap \mathcal{H}_0 &\approx \# \tilde{X}_j \in S \quad \text{(for } j \text{ s.t. } X_j \in \mathcal{H}_0) \\
+    &\le \# \tilde{X}_j \in S
+\end{align*}
+
+\noindent We define the FDP estimator as:
+\[ \widehat{\text{FDP}}(S \cap \{X_1, \dots, X_p\}) = \frac{(\# \tilde{X}_j \in S) + 1}{\max(1, \# X_j \in S)} \]
+
+Proof Idea for FDR Control.
+
+\begin{align*}
+    \text{FDR} &= \mathbb{E}[\text{FDP}(\hat{S} \cap \{X_1 \dots X_p\})] \\
+    &= \mathbb{E} \left[ \frac{\# X_j \in \hat{S} \cap \mathcal{H}_0}{\max(1, \# X_j \in \hat{S})} \right] \\
+    &= \mathbb{E} \left[ \frac{\# X_j \in \hat{S} \cap \mathcal{H}_0}{(\# \tilde{X}_j \in \hat{S}) + 1} \cdot \underbrace{\widehat{\text{FDP}}(\hat{S} \cap \{X_1 \dots X_p\})}_{\le \alpha} \right] \\
+    &\le \alpha \cdot \mathbb{E} \left[ \underbrace{\frac{\sum_{j \in \mathcal{H}_0} \mathbf{1}\{X_j \in \hat{S}\}}{1 + \sum_{j \in \mathcal{H}_0} \mathbf{1}\{\tilde{X}_j \in \hat{S}\}}}_{\text{we need this } \le 1} \right]
+\end{align*}
+
+\noindent \textbf{Idea:} For $X_j$ and $\tilde{X}_j$ to be equally likely to be falsely selected, $\tilde{X}_j$ needs to mimic:
+\begin{enumerate}
+    \item The marginal distribution of $X_j$.
+    \item The dependence between $X_j$ and other covariates.
+\end{enumerate}
+
+
+\emph{\textbf{Model-X Knockoffs (Setting 2)}}
+
+We require the knockoffs to satisfy \textbf{pairwise exchangeability} in distribution:
+\[ (X_{-j}, X_j, \tilde{X}_{-j}, \tilde{X}_j) \stackrel{d}{=} (X_{-j}, \tilde{X}_j, \tilde{X}_{-j}, X_j) \]
+$\hookrightarrow$ We will sample knockoffs for each $i = 1 \dots n$.
+
+\vspace{0.2cm}
+\noindent This then implies $\forall j \in \mathcal{H}_0$:
+\[ (X_1 \dots X_p, \tilde{X}_1 \dots \tilde{X}_p, Y) \stackrel{d}{=} (X_1 \dots X_{j-1}, \tilde{X}_j, X_{j+1} \dots X_p, \tilde{X}_1 \dots \tilde{X}_{j-1}, X_j, \dots, \tilde{X}_p, Y) \]
+$\hookrightarrow$ This implies any $j \in \mathcal{H}_0$ is equally likely to have $X_j \in \hat{S}$ or $\tilde{X}_j \in \hat{S}$. 
+
+\emph{\textbf{How to construct knockoffs}}
+\begin{itemize}
+    \item \textbf{Valid but useless:} $\tilde{X}_j = X_j \quad \forall j$ (This is powerless).
+    \item \textbf{Not valid:} $(\tilde{X}_{ij})_{i=1..n} = \text{permutation of } (X_{ij})_{i=1..n}$
+    \item \textbf{Not valid:} Sample $\tilde{X} = (\tilde{X}_1 \dots \tilde{X}_p) \sim P_X$.
+\end{itemize}
+
+\noindent \textbf{Need:} Construct a conditional distribution $P_{\tilde{X}|X}$ such that the joint distribution $P_X \cdot P_{\tilde{X}|X}$ satisfies pairwise exchangeability.
+
+\begin{example}{Toy Example ($p=2$).}
+Let $P_X$ be the joint distribution:
+\begin{center}
+\begin{tabular}{c|cc}
+    & \multicolumn{2}{c}{$X_2$} \\
+    $X_1$ & 0 & 1 \\
+    \hline
+    1 & 1/9 & 2/9 \\
+    2 & 2/9 & 1/9 \\
+    3 & 2/9 & 1/9 \\
+\end{tabular}
+\end{center}
+
+\noindent i.e., $X_1 \sim \text{Unif}(\{1,2,3\})$. \\
+$X_2 \mid X_1 \sim \text{Ber}(1/3)$ if $X_1 = 2,3$. \\
+$X_2 \mid X_1 \sim \text{Ber}(2/3)$ if $X_1 = 1$.
+
+\noindent \textbf{Joint distribution on $(X_1, X_2, \tilde{X}_1, \tilde{X}_2)$:}
+\begin{itemize}
+    \item $X_1, \tilde{X}_1 \stackrel{iid}{\sim} \text{Unif}(\{1,2,3\})$
+    \item If $X_1 = \tilde{X}_1 = 1$, then $X_2 = \tilde{X}_2 = 1$
+    \item If $X_1 \neq 1, \tilde{X}_1 \neq 1$, then $X_2, \tilde{X}_2 \stackrel{iid}{\sim} \text{Ber}(0.25)$. Otherwise, $X_2, \tilde{X}_2 \stackrel{iid}{\sim} \text{Ber}(0.5)$.
+\end{itemize}
+
+\noindent \textbf{Checks:}
+\begin{enumerate}
+    \item $P_X \cdot P_{\tilde{X}|X}$: we check that we got the desired marginal $P_X$.
+    \item Pairwise exchangeability holds by the symmetry of the construction.
+\end{enumerate}
+\end{example}
+
+\datum{Lecture 15: 02/24}
+
+\begin{example}{Multivariate Gaussian.}
+Assume $(X_1, \dots, X_p)^T \sim \mathcal{N}(\mu, \Sigma)$. We require:
+$$ \underbrace{\mathbb{P}_X}_{\text{dist. } (X_1 \dots X_p)} \times \underbrace{\mathbb{P}_{\tilde{X}|X}}_{\text{choose mechanism to sample knockoffs}} = \underbrace{\mathbb{P}(X, \tilde{X})}_{\text{pairwise exchangeability is satisfied}} $$
+
+For any diagonal matrix $D$:
+$$
+\begin{pmatrix} X_1 \\ \vdots \\ X_p \\ \tilde{X}_1 \\ \vdots \\ \tilde{X}_p \end{pmatrix}
+\sim \mathcal{N} \left( 
+\begin{pmatrix} \mu \\ \mu \end{pmatrix}, 
+\begin{pmatrix} \Sigma & \Sigma - D \\ \Sigma - D & \Sigma \end{pmatrix} 
+\right)
+$$
+\end{example}
+\emph{\textbf{General Recipe}}
+If it is not possible to directly construct a distribution:
+\begin{itemize}
+    \item \textbf{Step 1:} Know the joint distribution of $(X_1, X_{-1}) \rightsquigarrow$ calculate the conditional distribution of $X_1 \mid X_{-1}$. Sample $\tilde{X}_1$ from this distribution.
+    \item \textbf{Step 2:} Know the joint distribution of $(X_2, X_{-2}, \tilde{X}_1) \rightsquigarrow$ calculate the conditional distribution of $X_2 \mid X_{-2}, \tilde{X}_1$. Sample $\tilde{X}_2$ from this conditional distribution.
+\end{itemize}
+
+In practice, $\mathbb{P}_X$ is unknown. How to proceed? How to interpret the assumption that it is known?
+
+\begin{enumerate}
+    \item Estimate $\mathbb{P}_X$.
+    \item You may have a large sample of $X$ data:
+    \begin{itemize}
+        \item Estimate the 1st and 2nd moment of $\mathbb{P}_X$ and generate knockoffs to replicate these moments.
+        \item Use deep generative models to generate knockoffs.
+    \end{itemize}
+\end{enumerate}
+
+
+
+\emph{\textbf{Using Knockoffs for Model Selection}}
+
+Run any algorithm on $Y, X_1, \dots, X_p, \tilde{X}_1, \dots, \tilde{X}_p$ that returns a \textbf{feature importance} statistic $\{Z_1, \dots, Z_p, \tilde{Z}_1, \dots, \tilde{Z}_p\}$ where a higher value implies higher importance. \\
+\textit{e.g.,} Lasso $\rightsquigarrow$ value $\lambda$ when $X_j$ or $\tilde{X}_j$ first enters the model. \\
+\textit{e.g.,} Forward step $\rightsquigarrow$ time at which $X_j$ or $\tilde{X}_j$ is selected. \\
+(Effectively ranking $(X_1 \dots X_p, \tilde{X}_1 \dots \tilde{X}_p)$ most to least important).
+
+Define the selection sets and threshold $T$:
+\begin{align*}
+    \tilde{S}_t &= \{X_j : Z_j \ge t \text{ and } Z_j > \tilde{Z}_j\} \cup \{\tilde{X}_j : \tilde{Z}_j \ge t \text{ and } \tilde{Z}_j > Z_j\} \\
+    T &= \min \{t : \widehat{FDP}(\tilde{S}_t) \le \alpha \}, \quad \hat{S} = \tilde{S}_T
+\end{align*}
+
+$$ \text{FDR} \le \alpha \text{ as long as } \mathbb{E} \left[ \frac{\sum_{j \in \mathcal{H}_0} \mathbf{1}\{X_j \in \hat{S}_T\}}{1 + \sum_{j \in \mathcal{H}_0} \mathbf{1}\{\tilde{X}_j \in \hat{S}_T\}} \right] \le 1 $$
+
+\textbf{Proof Sketch.}
+We will prove a simpler statement for $\hat{S}_t$ at fixed $t$. Let $N = \sum_{j \in \mathcal{H}_0} \mathbf{1}\{X_j \in \hat{S}_t\} + \sum_{j \in \mathcal{H}_0} \mathbf{1}\{\tilde{X}_j \in \hat{S}_t\}$ and $B:= \sum_{j \in \mathcal{H}_0} \mathbf{1}\{X_j \in \hat{S}_t\}$.
+
+\noindent \underline{Claim:} Conditional on $N$, $B \sim \text{Binom}(N, 1/2)$.
+
+\noindent To check this technical condition: Swap $X_j$ and $\tilde{X}_j$ for $j \in \mathcal{H}_0$ in the regression. $Z_j$ and $\tilde{Z}_j$ swap. For $k \neq j$, $Z_k$ and $\tilde{Z}_k$ are unchanged. Conditioned on $\max(Z_j, \tilde{Z}_j) \ \forall j$, we have $N = \# j \in \mathcal{H}_0 : \max(Z_j, \tilde{Z}_j) \ge t$.
+
+Either $Z_j > \tilde{Z}_j$ or $Z_j < \tilde{Z}_j$. By exchangeability:
+$$ (X_1, \dots, X_p, \tilde{X}_1, \dots, \tilde{X}_p) \stackrel{d}{=} (X_1, \dots, \tilde{X}_j, \dots, X_p, \tilde{X}_1, \dots, X_j, \dots, \tilde{X}_p) $$
+$$ P\left(Z_j > \tilde{Z}_j \mid \text{all } X_k, k \neq j; \text{all } \tilde{X}_k, k \neq j; \max(Z_j, \tilde{Z}_j)\right) = \frac{1}{2} $$
+$\rightsquigarrow B \sim \text{Binom}(N, 1/2)$ for any fixed $N \rightarrow \mathbb{E}\left[\frac{B}{1+N-B}\right] \le 1$.
+
+\vspace{0.3cm}
+\noindent \underline{Everything so far is the Model-X setting:}
+\begin{itemize}
+    \item $\mathbb{P}_X$ distribution of $(X_1, \dots, X_p)$ is known.
+    \item $Y \mid X$ can be any distribution.
+\end{itemize}
+
+
+\emph{\textbf{Fixed-X Setting (Gaussian Linear Model)}}\\
+$X \in \mathbb{R}^{n \times p}$ fixed, $n \ge 2p$. $Y \sim \mathcal{N}(X\beta, \sigma^2 I)$.
+
+\textbf{Assume:} Feature importance statistics only depend on $(X \tilde{X})^T(X \tilde{X}) \in \mathbb{R}^{2p \times 2p}$ and $(X \tilde{X})^T Y \in \mathbb{R}^{2p}$ (need pairwise exchangeability).
+
+Choose any $\tilde{X} \in \mathbb{R}^{n \times p}$ such that $(X \tilde{X})^T(X \tilde{X}) = \begin{pmatrix} X^T X & X^T X - D \\ X^T X - D & X^T X \end{pmatrix}$ for a diagonal matrix $D$.
+
+\begin{align*}
+    (X \tilde{X})^T Y &\sim \mathcal{N}\left( (X \tilde{X})^T X\beta, \sigma^2 (X \tilde{X})^T(X \tilde{X}) \right) \\
+    &= \mathcal{N} \left( \begin{pmatrix} X^T X \beta \\ \tilde{X}^T X \beta \end{pmatrix}, \sigma^2 \begin{pmatrix} X^T X & X^T X - D \\ X^T X - D & X^T X \end{pmatrix} \right) \\
+    &= \mathcal{N} \left( \begin{pmatrix} X^T X \beta \\ X^T X \beta - D\beta \end{pmatrix}, \dots \right) 
+    \longrightarrow \text{equal in component } j \text{ if } \beta_j = 0.
+\end{align*}
+

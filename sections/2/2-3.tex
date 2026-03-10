@@ -1,0 +1,62 @@
+\subsection{Inference in Lasso Regression}
+\datum{Lecture 13: 02/17}
+For lasso with fixed $\lambda > 0$, i.e. 
+$$
+\hat{\beta} = \argmin\{ \frac{1}{2}\lVert Y-X\beta\rVert_2^2 + \lambda\rVert \beta\lVert_1\}$$
+
+\textbf{Goal:} find $A,b$ such that $\text{sign}(\hat\beta) = t \iff Ay\leq b$ for some $t\in\{-1,0,1\}$. 
+
+Some preliminary calculations: first-order optimality conditions for Lasso solution is
+$$
+X^\top_j(Y-X\hat{\beta}) = \begin{cases}
+    \lambda & \textup{if } \hat\beta > 0 \\
+    -\lambda & \textup{if } \hat\beta < 0 \\
+    \in [-\lambda, \lambda] & \textup{if } \hat\beta = 0 \\
+\end{cases}
+$$
+
+\begin{pr}
+    \begin{itemize}
+        \item \underline{Case 1: $\hat{\beta}_j > 0$}:. Locally, the objective functions is differentiable w.r.t. $\beta_j$
+        \begin{align*}
+            \frac{\partial}{\partial \beta_j} \left( \frac{1}{2}\lVert Y-X\beta\rVert_2^2 + \lambda\rVert \beta\lVert_1\right)_{\beta=\hat{\beta}} = -X_j^\top(Y-X\hat{\beta}) +\lambda = 0
+        \end{align*}
+        \item \underline{Case 2: $\hat{\beta}_j < 0$}:. 
+        \begin{align*}
+            \frac{\partial}{\partial \beta_j} \left( \frac{1}{2}\lVert Y-X\beta\rVert_2^2 + \lambda\rVert \beta\lVert_1\right)_{\beta=\hat{\beta}} = -X_j^\top(Y-X\hat{\beta}) -\lambda = 0
+        \end{align*}
+        \item \underline{Case 3: $\hat{\beta}_j = 0$}: in the positive direction (i.e. consider replacing $\hat{\beta}_j = 0$ with positive value, then the derivative w.r.t. $\beta_j$ is  $\beta_j = -X_j^\top(Y-X\hat\beta)+\lambda\geq 0$ by optimality. Analogously for the negative direction, we have $-X_j^\top (Y - X\hat{\beta}) - \lambda < 0$.
+\end{itemize}
+\end{pr}
+
+  \textbf{\underline{Claim:}} $\hat{\beta}$ is a linear function of $Y$. 
+        
+If we assume $\text{sign}(\hat{\beta}) = t$, then $t_j = 1 \implies X_j^T (Y - X\hat{\beta}) = \lambda$ and $t_j = -1 \implies X_j^T (Y - X\hat{\beta})= -\lambda$.
+
+Let $S = \text{support}(t) \subseteq [p] = \{j : t_j \neq 0\}$
+\begin{align*}
+    X_j^T (Y - X_S \hat{\beta}_S) &= \lambda t_j \quad \forall j \in S, \text{ i.e.} \\
+    X_S^T (Y - X_S \hat{\beta}_S) &= \lambda t_S \\
+    \hat{\beta}_S &= (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S)
+\end{align*}
+
+If $t = \text{sign}(\hat{\beta}) \iff$ If we define $\hat{\beta}$ via (2), then this $\hat{\beta}$ satisfies all the first-order optimality conditions and $\text{sign}(\hat{\beta}) = t$.
+
+For each $j \in S$
+\begin{itemize}
+    \item If $t_j = +1$, $e_j^T (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S) \ge 0$
+    \item If $t_j = -1$, $e_j^T (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S) \le 0$
+\end{itemize}
+
+Check first-order optimality condition
+\begin{itemize}
+    \item $t_j = +1 : X_j^T (Y - X\hat{\beta}) = \lambda$. We have 
+    \begin{align*}
+         X_S \hat{\beta}_S =& X_S (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S) \\
+        X_j^T (Y - X\hat{\beta}) &= X_j^T Y - X_j^T (X_S (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S)) 
+    \end{align*}
+
+     \item $t_j = 0 :$ $X_j^T (Y - X\hat{\beta}) \in [-\lambda, \lambda]$, we need 
+\[ X_j^T (Y - X_S (X_S^T X_S)^{-1} (X_S^T Y - \lambda t_S)) \]
+to be a linear function in $Y$ and these are $2(p - |S|) \text{ linear inequalities}$.
+\end{itemize}

@@ -1,0 +1,185 @@
+\subsection{Conformal Prediction}
+\datum{Lecture 16: 02/26}
+
+\begin{defn}[Quantile]
+    Let $\tau \in [0,1]$, the $\tau$-quantile of the list $z_1,\dots,z_n\in \mathbb{R}$ is 
+    \begin{align*}
+        \operatorname{Quantile}_\tau(z_1,\dots,z_m) = \inf\left\{ t\in\mathbb{R}\colon \frac{1}{m}\sum_{i=1}^m1\{z_i\leq t\} \geq \tau\right\}
+    \end{align*}
+\end{defn}
+
+\emph{\textbf{The split conformal prediction method}}
+
+\begin{enumerate}
+    \item Using pretraining data $Z_1, \dots, Z_{n_0}$ (writing $Z_i = (X_i, Y_i)$), construct fitted model $\widehat{f}$ using any regression algorithm:
+    \[
+    \widehat{f} = \mathcal{A}(Z_1, \dots, Z_{n_0})
+    \]
+
+    \item Compute quantile $\widehat{q}$ of calibration set residuals:
+    \[
+    \widehat{q} = \text{Quantile}_{(1-\alpha)(1+1/n_1)}\Big(\{|Y_i - \widehat{f}(X_i)|\}_{n_0 < i \leq n}\Big)
+    \]
+
+    \item For test point $n + 1$, return prediction interval:
+    \[
+    \mathcal{C}(X_{n+1}) = \widehat{f}(X_{n+1}) \pm \widehat{q}
+    \]
+\end{enumerate}
+
+
+\begin{thm}{Split Conformal prediction guarantees}
+If $Z_1, \dots, Z_{n+1}$ are exchangeable, then split conformal satisfies:
+\[
+\mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \geq 1 - \alpha
+\]
+\end{thm}
+
+\emph{\textbf{The split conformal prediction method (general score)}}
+
+\begin{enumerate}
+    \item Using pretraining data $Z_1, \dots, Z_{n_0}$, \\
+    construct score function $s : \mathcal{X} \times \mathcal{Y} \to \mathbb{R}$ using any algorithm
+    
+    \item Compute quantile $\widehat{q}$ of calibration set scores:
+    \[
+    \widehat{q} = \text{Quantile}_{(1-\alpha)(1+1/n_1)}(S_{n_0+1}, \dots, S_n)
+    \]
+    where $S_i = s(X_i, Y_i)$
+    
+    \item For test point $n + 1$ return prediction interval
+    \[
+    \mathcal{C}(X_{n+1}) = \{y \in \mathcal{Y} : s(X_{n+1}, y) \leq \widehat{q}\}
+    \]
+\end{enumerate}
+
+\begin{itemize}
+    \item \textbf{The Residual Score:} $s(x, y) = |y - \widehat{f}(x)|$, where $\widehat{f}$ is fitted on pretraining data. The prediction interval is $\mathcal{C}(X_{n+1}) = \widehat{f}(X_{n+1}) \pm \widehat{q}$.
+
+    \item \textbf{The Rescaled Residual Score:} $s(x, y) = \frac{|y - \widehat{f}(x)|}{\widehat{\sigma}(x)}$. Both $\widehat{f}$ and $\widehat{\sigma}$ are fitted on pretraining data to account for heteroscedasticity. The prediction interval is $\mathcal{C}(X_{n+1}) = \widehat{f}(X_{n+1}) \pm \widehat{q} \cdot \widehat{\sigma}(X_{n+1})$.
+
+    \item \textbf{Conformalized Quantile Regression (CQR):} $s(x, y) = \max \{y - \widehat{\gamma}_{\text{hi}}(x), \widehat{\gamma}_{\text{lo}}(x) - y\}$, where $\widehat{\gamma}_{\text{lo}}$ and $\widehat{\gamma}_{\text{hi}}$ are estimated quantiles of $Y|X$ fitted on pretraining data. The prediction interval is $\mathcal{C}(X_{n+1}) = [\widehat{\gamma}_{\text{lo}}(X_{n+1}) - \widehat{q}, \widehat{\gamma}_{\text{hi}}(X_{n+1}) + \widehat{q}]$.
+
+    \item \textbf{Distributional Conformal Prediction:} $s(x, y) = |\widehat{F}(y|x) - 0.5|$, where $\widehat{F}(\cdot|x)$ is the estimated conditional CDF of $Y$ given $X=x$, fitted on pretraining data. The prediction interval is $\mathcal{C}(X_{n+1}) = [\widehat{F}^{-1}(0.5 - \widehat{q} \mid X_{n+1}), \widehat{F}^{-1}(0.5 + \widehat{q} \mid X_{n+1})]$.
+
+    \item \textbf{Conditional Density Score:} $s(x, y) = -\widehat{f}(y|x)$, where $\widehat{f}(\cdot|x)$ is the estimated conditional density of $Y$ given $X=x$, fitted on pretraining data. The prediction set is $\mathcal{C}(X_{n+1}) = \{y \in \mathcal{Y} : \widehat{f}(y|X_{n+1}) \geq -\widehat{q}\}$.
+
+    \item \textbf{The Probability Score (Categorical Data):} $s(x, y_k) = -\widehat{p}_k(x)$, where $Y = \{y_1, \dots, y_K\}$ and $\widehat{p}_k(x)$ estimates $\mathbb{P}\{Y = y_k \mid X = x\}$, fitted on pretraining data. The prediction set is $\mathcal{C}(X_{n+1}) = \{y_k : \widehat{p}_k(X_{n+1}) \geq -\widehat{q}\}$.
+
+    \item \textbf{The Cumulative Probability Score (Categorical Data):} $s(x, y_k) = \sum_{k'} \widehat{p}_{k'}(x) \cdot \mathbf{1}\{\widehat{p}_{k'}(x) \geq \widehat{p}_k(x)\}$. This is a more efficient construction for categorical data that measures how far into the tail of the distribution the label $y_k$ falls.
+\end{itemize}
+
+\begin{thm}{General Split Conformal prediction}
+For any conformal score function $s$. If $Z_1, \dots, Z_{n+1}$ are exchangeable, then split conformal satisfies:
+\[
+\mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \geq 1 - \alpha
+\]
+\end{thm}
+
+\emph{\textbf{IID data setting:}}
+$Z_{i} = (X_{i}, Y_{i})$ and $Z_{1}, Z_{2}, \dots \sim_{iid} P$ (training, test)
+
+What is "distribution-free"?
+\begin{itemize}
+    \item No assumptions on $P$
+    \item But, does not allow dependence over time or distribution shift/drift (later)
+\end{itemize}
+
+
+\emph{\textbf{Exchangeable setting:}}
+
+\begin{defn}[Exchangeable]
+    Random Variables $Z_{1}, \dots, Z_{m}$ are exchangeable if for any perm. $\sigma \in S_{m}$
+$(Z_{1}, \dots, Z_{m}) = (Z_{\sigma(1)}, \dots, Z_{\sigma(m)})$
+\end{defn}
+
+Special case: iid $\implies$ exchangeability. Exchangeability of an infinite seq. of RVs:
+$Z_{1}, Z_{2}, \dots$ is exchangeable if $(Z_1,
+\dots,Z_m)$ is exchangeable for any $m$
+
+Examples, where exchangeability does not imply iid
+\begin{itemize}
+    \item[1.] Sampling without replacement
+   $Z_{1}, \dots, Z_{m}$ sampled uniformly w/o replacement from finite population $z_{1}, \dots, z_{N}$
+    \item[2.] Hierarchical model
+   $\begin{cases} \theta \sim P_{0} \\ Z_{1}, \dots, Z_{n} | \theta \sim^{iid} P(\cdot | \theta) \end{cases}$
+   mixture of iid distrib.
+
+    \item[3.] Equicorrelated Gaussian
+   $\begin{pmatrix} Z_{1} \\ \vdots \\ Z_{m} \end{pmatrix} \sim N(0, Sym(\sigma))$
+\end{itemize}
+
+Alternative interpretations of exchangeability:
+\begin{itemize}
+    \item If the m values $(Z_{1}, \dots, Z_{m})$ are distinct
+    \begin{itemize}
+        \item condition on $\{Z_{1}, \dots, Z_{m}\}$
+        \item then, conditionally, (almost surely) $(Z_{1}, \dots, Z_{m})$ is a uniformly random perm. of that set of values.
+    \end{itemize}
+    \item If $Z_{i}$'s are real-valued
+    \begin{itemize}
+        \item condition on order statistics $Z_{(1)} \le Z_{(2)} \le \dots \le Z_{(m)}$
+        \item then $(Z_{1}, \dots, Z_{m})$ is a uniformly random perm. of these values
+    \end{itemize}
+    \item More generally: empirical distrib. $\hat{P}_{m} = \frac{1}{m} \sum_{i=1}^{m} \delta_{Z_{i}}$ ($\delta_{z} = \text{point mass at } z$)
+    \begin{itemize}
+        \item condition on $\hat{P}_{m}$
+        \item then $(Z_{1}, \dots, Z_{m})$ is uniformly random perm. of the values. E.g. observe 3 A's and 1 B $\implies (Z_{1}, \dots, Z_{4})$ is equally likely to be (A,A,A,B) or (A,A,B,A), $\dots$
+    \end{itemize}
+\end{itemize}
+
+
+\emph{\textbf{Exchangeable data setting:}}
+$Z_{1}, \dots, Z_{n_{0}}, Z_{n_{0}+1}, \dots, Z_{n}, Z_{n+1}, Z_{n+2}, \dots$ (exchangeable, finite or infinite)
+(training, test)
+
+\begin{itemize}
+    \item Pretraining (train model $\hat{f}$, score functions)
+    \item Calibration points (holdout set)
+    \item Test-set
+\end{itemize}
+
+We construct the confidence interval $C(X_{n+1}) = \hat{f}(X_{n+1}) \pm \hat{q}$, which has coverage, as $Y_{n+1} \in C(X_{n+1}) \iff |Y_{n+1} - \hat{f}(X_{n+1})| \le \hat{q}$.
+
+In general, using a conformal score $s$:
+$$C(X_{n+1}) = \{y : s(X_{n+1}, y) \le \hat{q}\}$$
+$$Y_{n+1} \in C(X_{n+1}) \iff s(X_{n+1}, Y_{n+1}) \le \hat{q}$$
+
+\textbf{Goal:} $P\{s(X_{n+1}, Y_{n+1}) \le \hat{q}\} \ge 1 - \alpha$ (coverage)
+
+\textbf{Claim.} If data is exchangeable, then $s(Z_{n_{0}+1}), \dots, s(Z_{n}), s(Z_{n+1})$ (calibration, test) is exchangeable.
+
+\begin{pr}
+$S = (S_{n_{0}+1}, \dots, S_{n}, S_{n+1}) \in R^{n_{1}+1}$
+$S_{i} = s(Z_{i})$
+
+Need: $S = S_{\sigma} = (S_{\sigma(n_{0}+1)}, \dots, S_{\sigma(n+1)})$ for any $\sigma$ which is a permutation of $\{n_{0}+1, \dots, n+1\}$
+
+Define $h : (\mathcal{X} \times \mathcal{Y})^{n+1} \rightarrow R^{n_{1}+1}$
+$(z_{1}, \dots, z_{n+1}) \mapsto ([A(z_{1}, \dots, z_{n_{0}})](z_{i}))_{i=n_{0}+1, \dots, n+1}$
+(Score function fitted to data $z_{1}, \dots, z_{n_{0}}$), i.e. $h(Z_{1}, \dots, Z_{n+1}) = S$ by definition.
+
+Note: $h(Z_{1}, \dots, Z_{n_{0}}, Z_{\sigma(n_{0}+1)}, \dots, Z_{\sigma(n+1)}) = S_{\sigma}$ by defintion.
+
+$S = h(Z_{1}, \dots, Z_{n+1})$ by exch. of data
+$S_{\sigma} = h(Z_{1}, \dots, Z_{n_{0}}, Z_{\sigma(n_{0}+1)}, \dots, Z_{\sigma(n+1)})$
+$\implies S = S_{\sigma}$.
+\end{pr}
+
+Need to show: $P\{Y_{n+1} \in C(X_{n+1})\} = P\{s(Z_{n+1}) \le \hat{q}\}$ by def. of $C(X_{n+1})$
+
+\emph{Fact about exchangeability.}
+If $W_{1}, \dots, W_{m} \in \mathbb{R}$ are exchangeable, then $\forall i, \forall \tau \in [0,1]$,
+$P\{W_{i} \le \text{Quantile}_{\tau}(W_{1}, \dots, W_{m})\} \ge \tau$.
+
+Thus $P\{s(Z_{n+1}) \le \text{Quantile}_{1-\alpha}(s(Z_{n_{0}+1}), \dots, s(Z_{n}), s(Z_{n+1}))\} \ge 1 - \alpha$ by exch. of the scores.
+Compare to $\hat{q} = \text{Quantile}_{(1-\alpha)(1+\frac{1}{n_{1}})}(s(Z_{n_{0}+1}), \dots, s(Z_{n}))$
+
+\emph{Fact about quantiles.} For any $v_{1}, \dots, v_{m}, w \in \mathbb{R}$, any $\tau \in (0, 1]$,
+$w \le \text{Quantile}_{\tau}(v_{1}, \dots, v_{m}, w) \iff w \le \text{Quantile}_{\tau(1+\frac{1}{m})}(v_{1}, \dots, v_{m})$
+
+\begin{align*}
+s(Z_{n+1}) &\le \text{Quantile}_{1-\alpha}(s(Z_{n_{0}+1}), \dots, s(Z_{n}), s(Z_{n+1})) \\
+\iff
+s(Z_{n+1}) &\le \text{Quantile}_{(1-\alpha)(1+\frac{1}{n_{1}})}(s(Z_{n_{0}+1}), \dots, s(Z_{n})) = \hat{q}. \textup{ (Coverage)}
+\end{align*}

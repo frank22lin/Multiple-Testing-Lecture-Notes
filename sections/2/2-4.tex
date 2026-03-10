@@ -1,0 +1,75 @@
+\subsection{Methods to avoid or correct for selection bias}
+\begin{enumerate}
+    \item Make selection independent of inference (data-splitting)
+    \item Multiplicity correction to account for all possible selections
+    \item Selective inference $\rightarrow$ selection event $Ay \le b$ and perform inference using conditional distribution
+\end{enumerate}
+
+\begin{itemize}
+    \item[1)] Lose sample size
+    \item[2)] Reduce power for deterministic events
+    \item[3)] Restricted to narrow class of selection procedures - selection procedure must be prespecified. If selection event $\{Ay \le b\}$ is very narrow, can have less power
+\end{itemize}
+
+\begin{enumerate}
+    \setcounter{enumi}{3}
+    \item Randomized inference
+    \item Knockoffs
+\end{enumerate}
+
+\emph{\textbf{Randomized Inference for Lasso}}
+\begin{align*}
+    \hat{\beta} = \hat{\beta}(Y, W) &= \arg\min \left( \frac{1}{2} ||Y - X\beta||_2^2 - W^T \beta + \frac{\epsilon}{2} ||\beta||_2^2 + \lambda ||\beta||_1 \right) \\
+    W &\sim \mathcal{N}(0, \tau^2 I_p)
+\end{align*}
+
+\begin{enumerate}
+    \item Compute $\hat{\beta} = \hat{\beta}(Y, W)$
+    \item Use $\hat{\beta}$ to make selection, i.e. choose vector $\eta$ and perform inference on $\eta^T \mu$ and $\eta^T Y$
+    \item Then compute cond. distribution of $\eta^T Y$ perform inference
+\end{enumerate}
+
+\begin{center}
+    Need: $\eta^T Y \mid \text{selection event } \} \text{ e.g. } \text{sign}(\hat{\beta}(Y, W))$
+\end{center}
+
+\begin{align*}
+    \hat{\beta} &= \arg\min \left( \frac{1}{2} ||Y||_2^2 + \frac{1}{2} ||X\beta||_2^2 - \langle Y, X^T \beta \rangle - \beta^T W + \frac{\epsilon}{2} ||\beta||_2^2 + \lambda ||\beta||_1 \right)
+\end{align*}
+
+$\hat{\beta}$ depends on $(Y, W)$ only through $(X^T Y + W)$ (determines $\eta$)
+
+\begin{itemize}
+    \item Any selection event that is a function of $X^T Y + W$ \\
+    (e.g., selection that is function of $\hat{\beta} =$ solution to randomized lasso)
+    \item Use conditional dist. of $\eta^T Y \mid X^T Y + W$ for inference.
+\end{itemize}
+
+\begin{align*}
+    \begin{pmatrix} Y \\ W \end{pmatrix} &\sim \mathcal{N} \left( \begin{pmatrix} \mu \\ 0 \end{pmatrix}, \begin{pmatrix} \sigma^2 I_n & 0 \\ 0 & \tau^2 I_p \end{pmatrix} \right) \\
+    \begin{pmatrix} Y \\ X^T Y + W \end{pmatrix} &\sim \mathcal{N} \left( \begin{pmatrix} \mu \\ X^T \mu \end{pmatrix}, \begin{pmatrix} \sigma^2 I_n & \sigma^2 X \\ \sigma^2 X^T & \sigma^2 X^T X + \tau^2 I_p \end{pmatrix} \right)
+\end{align*}
+
+\begin{align*}
+    \implies Y \mid (X^T Y + W) &\sim \mathcal{N} \Big( \mu + \sigma^2 X(\sigma^2 X^T X + \tau^2 I_p)^{-1} (X^T Y + W - X^T \mu), \\
+    & \quad \quad \quad \sigma^2 I_n - \sigma^4 X(\sigma^2 X^T X + \tau^2 I_p)^{-1} X^T \Big) \\
+    \eta^T Y \mid X^T Y + W &\sim \mathcal{N}(\dots)
+\end{align*}
+
+\vspace{0.5cm}
+\noindent (1), (3), (4) can be unified via general framework
+\begin{itemize}
+    \item Observe $Z$
+    \item Make selection as function of $Z$
+    \item Observe $Y$ \& use conditional dist. $Y \mid Z$ for inference on selected data
+\end{itemize}
+
+\vspace{0.5cm}
+\noindent (1) Data splitting: $Z = \begin{pmatrix} Y_1 \\ Y_{n/2} \end{pmatrix} \quad Y \mid Z \sim \mathcal{N} \left( \begin{pmatrix} Y_1 \\ Y_{n/2} \end{pmatrix}, \begin{pmatrix} 0 & 0 \\ 0 & \sigma^2 I_{n/2} \end{pmatrix} \right)$
+
+\vspace{0.5cm}
+\noindent (3) $\mathbb{R}^n = \bigcup_{h=1}^k \{ y : A_h y \le b_h \}, \quad h(y) = \text{which region contains } y$
+\begin{align*}
+    Z &= (h(Y), P_{\eta}^\perp (Y)) \quad \eta = \text{function of } h(Y) \\
+    \eta^T Y \mid Z &\sim TN(\dots)
+\end{align*}
