@@ -1,0 +1,215 @@
+\subsection{Full Conformal Prediction}
+\datum{Lecture 17: 03/03}
+
+\textbf{Goal.} Marginal coverage guarantee without data splitting , i.e.
+$$\mathcal{C}(X_{n+1}) = \hat{f}(X_{n+1}) \pm \text{margin of error}$$
+
+If $\hat{f}$ were trained on $(X_1,Y_1),\dots, (X_n,Y_n),(X_{n+1},Y_{n+1})$ then training and test residuals are all overfitted.
+
+The residuals $R_i = |Y_i - f(X_i)|_{i=1,\dots, n+1}$ with $\hat{f}= \mathcal{A}((X_1,Y_1),\dots (X_{n+1},Y_{n+1}))$ for any symmetric regression algorithm (invariant to order of input data) are exchangeable. 
+
+\noindent \textit{Proof Sketch:}
+\begin{itemize}
+    \item $(R_1, \dots, R_{n+1})$ is a function of $((X_1, Y_1), \dots, (X_{n+1}, Y_{n+1}))$.
+    \item $(R_{\sigma(1)}, \dots, R_{\sigma(n+1)})$ is a function of the permuted data $((X_{\sigma(1)}, Y_{\sigma(1)}), \dots, (X_{\sigma(n+1)}, Y_{\sigma(n+1)}))$.
+    \item Because $\mathcal{A}$ is symmetric, $\hat{f}$ stays exactly the same, preserving exchangeability.
+\end{itemize}
+
+By exchangeability, the true label's residual is bounded by the empirical quantile:
+\[ \mathbb{P}(R_{n+1} \le \text{Quantile}_{1-\alpha}(R_1, \dots, R_{n+1})) \ge 1-\alpha \]
+
+This leads directly to the conformal interval:
+\[ C(X_{n+1}) = \hat{f}(X_{n+1}) \pm \text{Quantile}_{1-\alpha}(R_1, \dots, R_{n+1}) \]
+
+\noindent \textbf{Equivalence:} 
+$Y_{n+1} \in C(Y_{n+1}) \iff \underbrace{|Y_{n+1} - \hat{f}(X_{n+1})|}_{R_{n+1}} \le Q_{1-\alpha}(\dots)$
+
+More generally, if $s = \mathcal{A}((X_1, Y_1), \dots, (X_{n+1}, Y_{n+1}))$ is symmetric, and we define $S_i = s(X_i, Y_i)$, then:
+\[ \mathbb{P}(S_{n+1} \le Q_{1-\alpha}(S_1, \dots, S_{n+1})) \ge 1-\alpha \]
+
+To find $C(X_{n+1})$, we try every possible value of the unknown $Y_{n+1}$. For every $y \in \mathcal{Y}$:
+\begin{itemize}
+    \item Fit a candidate model: $\hat{f}^y = \mathcal{A}((X_1, Y_1), \dots, (X_n, Y_n), (X_{n+1}, y))$
+    \item Compute candidate residuals: 
+    \[ R_i^y = \begin{cases} |Y_i - \hat{f}^y(X_i)|, & i=1 \dots n \\ |y - \hat{f}^y(X_{n+1})|, & i=n+1 \end{cases} \]
+\end{itemize}
+The valid prediction set collects all $y$ values that do not produce suspiciously large residuals:
+\[ C(X_{n+1}) = \{ y \in \mathcal{Y} : R_{n+1}^y \le Q_{1-\alpha}(R_1^y, \dots, R_{n+1}^y) \} \]
+
+\begin{thm}{Exchangeable Data and Symmetric Predictor}{}
+If data is exchangeable, and the algorithm $\mathcal{A}$ is symmetric, then:
+\[ \mathbb{P} \{Y_{n+1} \in C(X_{n+1})\} \ge 1-\alpha \]
+\end{thm}
+
+\begin{pr}
+By the definition of $C$, plugging in $y = Y_{n+1}$ gives the equivalence:
+\[ Y_{n+1} \in \mathcal{C}(X_{n+1}) \iff R_{n+1}^{Y_{n+1}} \le Q_{1-\alpha}(R_1^{Y_{n+1}}, \dots, R_{n+1}^{Y_{n+1}}) \]
+
+\noindent By definition, if $y = Y_{n+1}$, then our fitted model is exactly the model fit on the true data:
+\[ \hat{f}^y = \hat{f} = \mathcal{A}((X_1, Y_1), \dots, (X_{n+1}, Y_{n+1})) \]
+and the residuals match the true residuals: $R_i^y = R_i \, \forall i$. Substituting these back into the inequality gives $R_{n+1} \le Q_{1-\alpha}(R_1, \dots, R_{n+1})$. From before (by the exchangeability of symmetric residuals), we know:
+\[ \mathbb{P} \left\{ R_{n+1} \le \text{Quantile}_{1-\alpha}(R_1, \dots, R_{n+1}) \right\} \ge 1-\alpha \]
+which completes the proof.
+\end{pr}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2,
+    point/.style={circle, draw=gray, fill=gray!20, inner sep=1pt, minimum size=4pt},
+    candidate/.style={star, star points=6, draw=orange!90!orange, fill=orange!90!orange, inner sep=1.5pt}
+]
+
+    % Axes
+    \draw[thick, ->] (0,0) -- (8,0) node[right] {$x$};
+    \draw[thick, ->] (0,0) -- (0,5) node[above] {$y$};
+
+    % Fitted Curve \hat{f}^y
+    \draw[thick, orange!90!orange] (0.5, 1.5) .. controls (3, 2.2) and (5, 2.5) .. (7.5, 3.2);
+    \node[orange!90!orange, below left] at (0.5, 1.5) {$\hat{f}^y$};
+
+    % Scatter points (training data)
+    \node[point] (p1) at (1, 1.2) {};
+    \node[point] (p2) at (2, 2.8) {};
+    \node[point] (p3) at (3, 1.8) {};
+    \node[point] (p4) at (4, 2.3) {};
+    \node[point] (p5) at (4.5, 2.0) {};
+    \node[point] (p6) at (6.5, 2.7) {};
+    \node[point] (p7) at (7, 3.5) {};
+
+    % Annotate training data
+    \node[above right, align=left] (td) at (6, 4) {training\\data};
+    \draw[->, shorten >=2pt, gray] (td) edge[bend right=10] (p4);
+    \draw[->, shorten >=2pt, gray] (td) edge[bend left=10] (p6);
+
+    % Specific point (X_i, Y_i) and its residual
+    \node[above left] at (p2) {$(X_i, Y_i)$};
+    \draw[dashed, orange!90!orange, thick] (2, 2.8) -- (2, 1.95); % Distance to curve
+    \draw[->, orange!90!orange] (1.5, 2.4) node[left] {$R_i^y$} .. controls (1.7, 2.4) .. (1.9, 2.3);
+
+    % Test Point X_{n+1} line
+    \draw[dashed, thick] (5.5, -0.2) node[below] {$X_{n+1}$} -- (5.5, 4.8);
+
+    % Candidate points for y
+    \node[candidate] (cand1) at (5.5, 4.2) {};
+    \node[above right] at (cand1) {$(X_{n+1}, y)$};
+    
+    \node[candidate] (cand2) at (5.5, 0.8) {};
+    \node[right] at (cand2) {$y = Y_{n+1}$};
+
+    % Residual for candidate point
+    \draw[dashed, orange!90!orange, thick] (5.5, 4.2) -- (5.5, 2.65);
+    \node[orange!90!orange, left] at (5.4, 3.4) {$R_{n+1}^y$};
+
+    % Bracket for quantile
+    \draw[thick, orange!90!orange] (-0.1, 1) -- (0.1, 1);
+    \draw[thick, orange!90!orange] (-0.1, 2) -- (0.1, 2);
+    \draw[thick, orange!90!orange] (0, 1) -- (0, 2);
+    \draw[->, orange!90!orange, shorten >=2pt] (2.5, 3.5) node[right] {$\text{Quantile}_{1-\alpha}(R_1^y, \dots, R_{n+1}^y)$} .. controls (1.5, 3) .. (0.1, 1.5);
+
+    % Generic residual dashed lines for other points
+    \draw[dashed, gray] (1, 1.2) -- (1, 1.6);
+    \draw[dashed, gray] (3, 1.8) -- (3, 2.15);
+    \draw[dashed, gray] (4, 2.3) -- (4, 2.35);
+    \draw[dashed, gray] (6.5, 2.7) -- (6.5, 2.95);
+    \draw[dashed, gray] (7, 3.5) -- (7, 3.05);
+
+\end{tikzpicture}
+\end{center}
+
+More generally, the exact same logic holds for any score function. For all $y \in \mathcal{Y}$
+\begin{itemize}
+    \item $s^y = \mathcal{A}((X_1,Y_1),\dots,(X_n,Y_n), (X_{n+1},Y_{n+1})$
+    \item $S_i^y = \begin{cases}
+        s^y(X_i,Y_i) & i=1,\dots,n\\
+        s^y(X_{n+1},y) & i=n+1
+    \end{cases}
+    $
+\end{itemize}
+$C(X_{n+1}) = \{y\in\mathcal{Y}\colon S^y_{n+1} \leq \text{Quantile}_{1-\alpha}(S_1^y, \dots, S_{n+1}^y)\}$.
+
+More standard notation uses a score function $S((x,y), D)$ which is symmetric in $D \in \bigcup_{k=1}^\infty (\mathcal{X} \times \mathcal{Y})^k$ (a dataset of any size). Define the augmented dataset: $D_{n+1}^y = ((X_1, Y_1), \dots, (X_n, Y_n), (X_{n+1}, y))$. The scores are then evaluated as:
+\[ S_i^y = \begin{cases} S((X_i, Y_i), D_{n+1}^y), & i=1 \dots n \\ S((X_{n+1}, y), D_{n+1}^y), & i=n+1 \end{cases} \]
+
+Data exchangeability combined with a symmetric score function implies marginal coverage:
+\[ \mathbb{P}(Y_{n+1} \in C(X_{n+1})) \ge 1-\alpha \]
+
+\vspace{0.5cm}
+
+\emph{\textbf{Computing $C$ for Full Conformal}}
+
+\begin{enumerate}
+    \item \textbf{Classification:} If $|\mathcal{Y}|$ is finite, you can easily try every $y \in \mathcal{Y}$.
+    \item \textbf{Closed-Form:} For some choices of $\mathcal{A}$ or $s$, you can compute $C$ in closed form or in finite time (e.g., ridge regression, lasso, least squares).
+    \item \textbf{Approximation:} Otherwise, if $\mathcal{Y} = \mathbb{R}$, approximate by evaluating over a discrete grid $y_1 < \dots < y_k$ and output an approximation. \\
+    \textit{(Note: The strict distribution-free guarantee may not hold under approximation).}
+\end{enumerate}
+
+\emph{\textbf{Split Conformal vs. Full Conformal}}
+
+\textbf{Split Conformal:}
+\begin{itemize}
+    \item Low computational cost.
+    \item Less accurate due to data splitting $\implies$ higher variance/noise, meaning $C$ is generally wider.
+\end{itemize}
+
+\noindent \textbf{Theoretical Connection:}
+Theoretically, split conformal is just a special case of full conformal prediction.
+\begin{itemize}
+    \item The dataset is partitioned into a pretrain set $(X_1, Y_1), \dots, (X_{n_0}, Y_{n_0})$ and a calibration/holdout set.
+    \item You run full conformal using regression algorithm that simply returns the pretrained $\hat{f}$ for \textit{any} input data, ignoring the calibration points during fitting.
+\end{itemize}
+
+\emph{\textbf{Run Full Conformal}}
+
+For every $y\in \mathcal{Y}=\mathbb{R}\colon$
+\begin{enumerate}
+    \item Train $\hat{f}^y = \mathcal{A}((X_{n_0+1},Y_{n_0+1}), \dots, (X_n,Y_n),(X_{n+1},y)) =\hat{f}$
+    \item Compute residuals for $i=n_0,\dots, n$
+    $$
+    R^y_i = |Y_i-\hat{f}^y(X_i)|= |Y_i-\hat{f}(X_i)|
+    $$
+    and 
+    $$
+    R^y_{n+1} = |Y_i-\hat{f}^y(X_{n+1})|= |y-\hat{f}(X_{n+1})|
+    $$
+    \item 
+    \begin{align*}
+        C(X_{n+1}) &= \{y\colon R^y_{n+1}\leq \text{Quantile}_{1-\alpha}(R_{n_0+1}^y,\dots, R^y_n,R^y_{n+1} \} \\
+        &=\hat{f}(X_{n+1}) \pm \text{Quantile}_{1-\alpha\left(1+\frac{1}{n_1}\right)}( R^y_n,R^y_{n+1} ) \quad \text{ (split conformal interval) }
+    \end{align*}
+\end{enumerate}
+
+Ideally:
+\[ \mathcal{C}(X_{n+1}) = \hat{f}(X_{n+1}) \pm \underbrace{(\text{?})}_{\text{train on } (X_1, Y_1) \dots (X_n, Y_n)} \]
+
+\textbf{Cross-validation} to compute the margin of error. Let $[n] = I_1 \cup \dots \cup I_K = K $ be the folds of size $n/K$ for each $k$, \& $i \in I_k$,
+\[ R_i = |Y_i - \hat{f}_{-I_k}(X_i)| \]
+where $\hat{f}_{-I_k} = \mathcal{A}((X_j, Y_j)_{j \in [n] \setminus I_k})$ and
+\[ \mathcal{C}(X_{n+1}) = \hat{f}(X_{n+1}) \pm \text{Quantile}_{1-\alpha}\underbrace{(R_1, \dots, R_n)}_{\text{CV residuals}} \]
+
+Under regularity conditions,
+\[ \mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \ge 1 - \alpha - o(1) \]
+
+But coverage may fail if we do not place any assumption on data or $\mathcal{A}$.
+
+\emph{\textbf{Leave-one-out CV}} ('jackknife') $R_i = |Y_i-\hat{f}_{-i}(X_i)|$.
+
+\begin{example}
+    
+
+let $\mathcal{A}$ be:
+\[ \begin{cases} 
+\text{if input data has an odd \# of data points, run least sq.} \\ 
+\text{if not, return } \hat{f}(x) = 1,000,000 \text{ (constant function)} 
+\end{cases} \]
+
+If $n$ even, then $\hat{f}(X_{n+1}) = 1,000,000$, 
+but $R_i = |Y_i - \hat{f}_{-i}(X_i)|$ are small (least squares)
+\[ \mathcal{C}(X_{n+1}) = 1,000,000 \pm \left( \substack{\text{small} \\ \text{margin of err}} \right) \]
+and conseqeuntly coverage $\approx 0$.
+
+
+\end{example}
+
+\emph{\textbf{Algorithmic stability}}
+A sufficient condition to avoid degenerate examples \& guarantee approximate coverage: for $(X_1, Y_1), \dots, (X_{n+1}, Y_{n+1}) \sim P$,
+\[ |\underbrace{\hat{f}(X_{n+1})}_{\text{train on }(X_j, Y_j)_{j \in [n]}} - \underbrace{\hat{f}_{-i}(X_{n+1})}_{\text{train on }(X_j, Y_j)_{j \in [n] \setminus i}}| \le \varepsilon \text{ w/ prob } \ge 1-\delta \]

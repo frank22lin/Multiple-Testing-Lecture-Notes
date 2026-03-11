@@ -28,7 +28,7 @@
 \end{enumerate}
 
 
-\begin{thm}{Split Conformal prediction guarantees}
+\begin{thm}{Split Conformal prediction guarantees}{naive_split}
 If $Z_1, \dots, Z_{n+1}$ are exchangeable, then split conformal satisfies:
 \[
 \mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \geq 1 - \alpha
@@ -69,7 +69,7 @@ If $Z_1, \dots, Z_{n+1}$ are exchangeable, then split conformal satisfies:
     \item \textbf{The Cumulative Probability Score (Categorical Data):} $s(x, y_k) = \sum_{k'} \widehat{p}_{k'}(x) \cdot \mathbf{1}\{\widehat{p}_{k'}(x) \geq \widehat{p}_k(x)\}$. This is a more efficient construction for categorical data that measures how far into the tail of the distribution the label $y_k$ falls.
 \end{itemize}
 
-\begin{thm}{General Split Conformal prediction}
+\begin{thm}{General Split Conformal prediction}{general_split}
 For any conformal score function $s$. If $Z_1, \dots, Z_{n+1}$ are exchangeable, then split conformal satisfies:
 \[
 \mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \geq 1 - \alpha
@@ -183,3 +183,5 @@ s(Z_{n+1}) &\le \text{Quantile}_{1-\alpha}(s(Z_{n_{0}+1}), \dots, s(Z_{n}), s(Z_
 \iff
 s(Z_{n+1}) &\le \text{Quantile}_{(1-\alpha)(1+\frac{1}{n_{1}})}(s(Z_{n_{0}+1}), \dots, s(Z_{n})) = \hat{q}. \textup{ (Coverage)}
 \end{align*}
+
+

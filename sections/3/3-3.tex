@@ -1,0 +1,114 @@
+\subsection{Jackknife}
+\datum{Lecture 18: 03/05}
+
+\emph{\textbf{Leave-one-out cross-validation (jackknife)}}
+
+Define the leave-one-out fits and residuals:
+\begin{itemize}
+    \item $\hat{f}_{-i} := \mathcal{A}((X_j, Y_j)_{j \in [n] \setminus \{i\}})$
+    \item $R_i := |Y_i - \hat{f}_{-i}(X_i)|$, for $i \in [n]$
+\end{itemize}
+Jackknife interval: $\mathcal{C}_{JK}(X_{n+1}) := \hat{f}(X_{n+1}) \pm Q_{1-\alpha}(R_1, \dots, R_n)$.
+
+\emph{\textbf{Jackknife+}}
+
+Jackknife+ replaces the single fitted value $\hat{f}(X_{n+1})$ by the leave-one-out predictions $\hat{f}_{-i}(X_{n+1})$. Define
+\[ \mathcal{C}_{JK+}(X_{n+1}) := \left[ -Q_{(1-\alpha)(1+1/n)}((-\hat{f}_{-i}(X_{n+1}) + R_i)_{i \in [n]}), \quad Q_{(1-\alpha)(1+1/n)}((\hat{f}_{-i}(X_{n+1}) + R_i)_{i \in [n]}) \right] \]
+
+Comparison to jackknife:
+\begin{itemize}
+    \item jackknife can fail badly without stability assumptions;
+    \item jackknife+ is more conservative, but has a finite-sample coverage guarantee under exchangeability.
+\end{itemize}
+
+\begin{thm}{Jackknife+}{}
+If the data are exchangeable and $\mathcal{A}$ is symmetric, then $\mathbb{P}\{Y_{n+1} \in \mathcal{C}_{JK+}(X_{n+1})\} \ge 1-2\alpha$.
+\end{thm}
+
+Under additional algorithmic-stability assumptions, this can improve to $1-\alpha-o(1)$. Jackknife may have $\mathbb{P}\{Y_{n+1} \in \mathcal{C}_{JK}(X_{n+1})\} = 0$ for unstable algorithms, although approximate coverage can hold under stability assumptions.
+
+For unstable algorithms, jackknife+ produces visibly more jitter and wider intervals. This is the price of avoiding catastrophic undercoverage.
+
+\emph{\textbf{Proof idea for jackknife+}}
+
+For $i, j \in [n+1]$, define the leave-two-out models $\tilde{f}_{i,j} := \mathcal{A}((X_k, Y_k)_{k \in [n+1] \setminus \{i,j\}})$ and residuals $R_{i,j} := |Y_i - \tilde{f}_{i,j}(X_i)|$.
+If $i = n+1$ or $j = n+1$, these are exactly the leave-one-out objects appearing in jackknife+.
+The array $(R_{i,j})_{i,j \in [n+1]}$ is row/column exchangeable.
+
+Tournament view: Form a tournament with one team for each $i \in [n+1]$;
+\begin{itemize}
+    \item team $i$ beats team $j$ if $R_{i,j} > R_{j,i}$;
+    \item team $j$ beats team $i$ if $R_{i,j} < R_{j,i}$.
+\end{itemize}
+\emph{\textbf{Fact}}. The proportion of teams that win at least a $1-\alpha$ fraction of their games is at most $2\alpha$.
+By exchangeability, this implies $\mathbb{P}\{\text{team } n+1 \text{ wins at least a } 1-\alpha \text{ fraction of its games}\} \le 2\alpha$.
+
+Last step: verify that $Y_{n+1} \notin \mathcal{C}_{JK+}(X_{n+1}) \implies \text{team } n+1 \text{ wins at least a } 1-\alpha \text{ fraction of its games}$.
+For example, if $Y_{n+1}$ exceeds the upper endpoint, then for at least $(1-\alpha)(n+1)$ indices $i$, $\hat{f}_{-i}(X_{n+1}) + R_i < Y_{n+1}$, which is equivalent to $R_{n+1,i} > R_{i,n+1}$. Hence team $n+1$ wins against at least $(1-\alpha)(n+1)$ opponents.
+
+\emph{\textbf{Distribution shift and weighted conformal prediction}}
+
+
+If the training data are i.i.d. from $P$ and the test point is from $Q$, then exchangeability fails unless $P=Q$.
+
+Covariate shift assumption:
+\begin{itemize}
+    \item $P = P_X \times P_{Y|X}$
+    \item $Q = Q_X \times P_{Y|X}$
+\end{itemize}
+Only the distribution of $X$ changes. Assume a weight function $w(x) \propto \frac{dQ_X}{dP_X}(x)$.
+
+Split weighted conformal prediction: Train a score function $s$ on part of the data. On the calibration set $i=n_0+1, \dots, n$, form the weighted empirical distribution:
+\[ \hat{\nu} := \frac{\sum_{i=n_0+1}^n w(X_i)\delta_{s(X_i, Y_i)} + w(X_{n+1})\delta_{+\infty}}{\sum_{i=n_0+1}^n w(X_i) + w(X_{n+1})} \]
+Let $\hat{q}$ be the $(1-\alpha)$-quantile of $\hat{\nu}$ and define $\mathcal{C}_w(X_{n+1}) := \{y \in \mathcal{Y} : s(X_{n+1}, y) \le \hat{q}\}$.
+If $w(x) \equiv 1$, this reduces to ordinary split conformal prediction.
+
+\begin{thm}{Weighted conformal prediction}{}
+If $w(x) \propto \frac{dQ_X}{dP_X}(x)$, $(X_1, Y_1), \dots, (X_n, Y_n) \approx P_X \times P_{Y|X}$ and $(X_{n+1}, Y_{n+1}) \sim Q_X \times P_{Y|X}$, then weighted conformal prediction satisfies $\mathbb{P}\{Y_{n+1} \in \mathcal{C}_w(X_{n+1})\} \ge 1-\alpha$.
+\end{thm}
+
+\emph{\textbf{Marginal versus conditional coverage}}
+
+
+Ordinary conformal prediction gives marginal coverage:
+For a score-based method, $\mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1})\} \ge 1-\alpha$.
+$Y_{n+1} \in \mathcal{C}(X_{n+1}) \iff s(X_{n+1}, Y_{n+1}) \le \hat{q}$.
+
+Here $\hat{q}$ estimates a marginal $(1-\alpha)$-quantile of $s(X,Y)$ under $P$.
+If the conditional $(1-\alpha)$-quantile of $s(X,Y)|X=x$ were approximately constant in $x$, then marginal and conditional coverage would nearly coincide.
+
+\emph{\textbf{Hardness of exact distribution-free conditional coverage}}
+
+\begin{thm}{Impossibility of exact conditional coverage}{}
+Let $\mathcal{C}$ be any method such that for every i.i.d. distribution $P$, $\mathbb{P}\{Y_{n+1} \in \mathcal{C}(X_{n+1}) \mid X_{n+1}\} \ge 1-\alpha$ a.s..
+If the marginal $P_X$ is nonatomic, then for every $(x,y)$, a.s. $\mathbb{P}\{y \in \mathcal{C}(x)\} \ge 1-\alpha$.
+In particular, if $\mathcal{Y} = \mathbb{R}$, then $\mathbb{P}\{\lambda(\mathcal{C}(X_{n+1})) = \infty\} \ge 1-\alpha$, where $\lambda$ denotes Lebesgue measure.
+\end{thm}
+
+Interpretation: Exact distribution-free conditional coverage forces the prediction set to be essentially trivial.
+
+\textbf{Proof idea}: Fix a distribution $P$ with nonatomic $P_X$, and perturb it to $P' := (1-\epsilon)P + \epsilon\delta_{(x,y)}$.
+Under $P'$, the conditional law at $X=x$ puts mass 1 on $Y=y$. Exact conditional coverage under $P'$ forces $\mathbb{P}_{P'}\{y \in \mathcal{C}(x)\} \ge 1-\alpha$.
+Then compare $P^n$ and $(P')^n$ via total variation, send $\epsilon \to 0$, and conclude $\mathbb{P}_P\{y \in \mathcal{C}(x)\} \ge 1-\alpha$.
+
+\emph{\textbf{Best-of-both-worlds idea}}
+
+Possible strategy:
+\begin{enumerate}
+    \item choose a score function whose conditional $(1-\alpha)$-quantile is approximately constant in $x$;
+    \item run split conformal with that score.
+\end{enumerate}
+Then:
+\begin{itemize}
+    \item under exchangeability alone, still get marginal coverage $\ge 1-\alpha$
+    \item under additional regularity assumptions, may also get approximate conditional coverage.
+\end{itemize}
+
+\emph{\textbf{Example: conformalized quantile regression (CQR)}}
+
+
+Take $s(x,y) := \max\{y - \hat{\gamma}_{\text{high}}(x), \hat{\gamma}_{\text{low}}(x) - y\}$, where $\hat{\gamma}_{\text{low}}$ and $\hat{\gamma}_{\text{high}}$ estimate the $\alpha/2$ and $1-\alpha/2$ conditional quantiles of $Y|X=x$.
+
+Then the conformalized interval has the form $\mathcal{C}(X_{n+1}) = [\hat{\gamma}_{\text{low}}(X_{n+1}) - \hat{q}, \hat{\gamma}_{\text{high}}(X_{n+1}) + \hat{q}]$.
+
+If the quantile estimators are accurate, then the conditional $(1-\alpha)$-quantile of $s(X_{n+1}, Y_{n+1}) \mid X_{n+1} = x$ is approximately 0 for every $x$. This is exactly the type of score for which marginal and conditional guarantees can nearly align.
